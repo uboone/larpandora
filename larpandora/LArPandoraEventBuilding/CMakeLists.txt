@@ -1,7 +1,7 @@
 include_directories( $ENV{PANDORA_INC} )
 include_directories( $ENV{LARPANDORACONTENT_INC} )
 
-art_make( 
+art_make(
           LIB_LIBRARIES larcorealg_Geometry
                         larcore_Geometry_Geometry_service
                         larsim_Simulation lardataobj_Simulation
@@ -23,7 +23,7 @@ art_make(
                         ${ART_FRAMEWORK_PRINCIPAL}
                         ${ART_FRAMEWORK_SERVICES_REGISTRY}
                         ${ART_FRAMEWORK_SERVICES_BASIC}
-                        ${ART_ROOT_IO_TFILE_SUPPORT} ${ROOT_CORE}
+                        ${ART_ROOT_IO_TFILE_SUPPORT} ROOT::Core
                         ${ART_ROOT_IO_TFILESERVICE_SERVICE}
                         art_Persistency_Common
                         art_Persistency_Provenance
@@ -34,9 +34,9 @@ art_make(
                         cetlib cetlib_except
                         ${Boost_SYSTEM_LIBRARY}
                         ${Boost_FILESYSTEM_LIBRARY}
-                        ${ROOT_GEOM}
+                        ROOT::Geom
                         ${ROOT_BASIC_LIB_LIST}
-                        ${ROOT_GENVECTOR}
+                        ROOT::GenVector
                         MODULE_LIBRARIES larpandora_LArPandoraEventBuilding
           )
 
