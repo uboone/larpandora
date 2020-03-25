@@ -239,6 +239,7 @@ private:
 
      bool         m_recursiveMatching;      ///<
      bool         m_printDebug;             ///< switch for print statements (TODO: use message service!)
+     bool         m_disableRealDataCheck;   ///< Whether to check if the input file contains real data before accessing MC information
 };
 
 DEFINE_ART_MODULE(PFParticleMonitoring)
@@ -306,6 +307,7 @@ void PFParticleMonitoring::reconfigure(fhicl::ParameterSet const &pset)
 
     m_recursiveMatching = pset.get<bool>("RecursiveMatching",false);
     m_printDebug = pset.get<bool>("PrintDebug",false);
+    m_disableRealDataCheck = pset.get<bool>("DisableRealDataCheck",false);
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------
@@ -548,7 +550,7 @@ void PFParticleMonitoring::analyze(const art::Event &evt)
     MCParticlesToHits trueParticlesToHits;
     HitsToMCParticles trueHitsToParticles;
 
-    if (!evt.isRealData())
+    if (m_disableRealDataCheck || !evt.isRealData())
     {
         LArPandoraHelper::CollectMCParticles(evt, m_geantModuleLabel, trueParticleVector);
         LArPandoraHelper::CollectMCParticles(evt, m_geantModuleLabel, truthToParticles, particlesToTruth);

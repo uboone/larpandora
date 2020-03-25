@@ -63,6 +63,7 @@ LArPandora::LArPandora(fhicl::ParameterSet const &pset) :
     m_enableProduction(pset.get<bool>("EnableProduction", true)),
     m_enableDetectorGaps(pset.get<bool>("EnableLineGaps", true)),
     m_enableMCParticles(pset.get<bool>("EnableMCParticles", false)),
+    m_disableRealDataCheck(pset.get<bool>("DisableRealDataCheck", false)),
     m_lineGapsCreated(false)
 {
     m_inputSettings.m_useHitWidths = pset.get<bool>("UseHitWidths", true);
@@ -193,7 +194,7 @@ void LArPandora::CreatePandoraInput(art::Event &evt, IdToHitMap &idToHitMap)
 
     LArPandoraHelper::CollectHits(evt, m_hitfinderModuleLabel, artHits);
 
-    if (m_enableMCParticles && !evt.isRealData())
+    if (m_enableMCParticles && (m_disableRealDataCheck || !evt.isRealData()))
     {
         LArPandoraHelper::CollectMCParticles(evt, m_geantModuleLabel, artMCParticleVector);
 
@@ -223,7 +224,7 @@ void LArPandora::CreatePandoraInput(art::Event &evt, IdToHitMap &idToHitMap)
 
     LArPandoraInput::CreatePandoraHits2D(m_inputSettings, m_driftVolumeMap, artHits, idToHitMap);
 
-    if (m_enableMCParticles && !evt.isRealData())
+    if (m_enableMCParticles && (m_disableRealDataCheck || !evt.isRealData()))
     {
         LArPandoraInput::CreatePandoraMCParticles(m_inputSettings, artMCTruthToMCParticles, artMCParticlesToMCTruth, generatorArtMCParticleVector);
         LArPandoraInput::CreatePandoraMCLinks2D(m_inputSettings, idToHitMap, artHitsToTrackIDEs);
