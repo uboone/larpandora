@@ -8,6 +8,9 @@
 #define LAR_PANDORA_INPUT_H 1
 
 #include "lardata/ArtDataHelper/MVAReader.h"
+namespace detinfo {
+  class DetectorPropertiesData;
+}
 
 #include "larpandora/LArPandoraInterface/ILArPandora.h"
 #include "larpandora/LArPandoraInterface/LArPandoraGeometry.h"
@@ -48,12 +51,14 @@ namespace lar_pandora {
     /**
      *  @brief  Create the Pandora 2D hits from the ART hits
      *
+     *  @param  evt art event being processed
      *  @param  settings the settings
      *  @param  driftVolumeMap the mapping from volume id to drift volume
      *  @param  hits the input list of ART hits for this event
      *  @param  idToHitMap to receive the mapping from Pandora hit ID to ART hit
      */
-    static void CreatePandoraHits2D(const Settings& settings,
+    static void CreatePandoraHits2D(const art::Event& evt,
+                                    const Settings& settings,
                                     const LArDriftVolumeMap& driftVolumeMap,
                                     const HitVector& hitVector,
                                     IdToHitMap& idToHitMap);
@@ -160,10 +165,13 @@ namespace lar_pandora {
     /**
      *  @brief  Use detector and time services to get a true X offset for a given trajectory point
      *
+     *  @param  evt event currently being processing by art
      *  @param  particle the true particle
      *  @param  nT the trajectory point
      */
-    static float GetTrueX0(const art::Ptr<simb::MCParticle>& particle, const int nT);
+    static float GetTrueX0(const art::Event& evt,
+                           const art::Ptr<simb::MCParticle>& particle,
+                           const int nT);
 
     /**
      *  @brief  Convert charge in ADCs to approximate MIPs
@@ -172,7 +180,8 @@ namespace lar_pandora {
      *  @param  hit_Charge the input charge
      *  @param  hit_View the input view number
      */
-    static double GetMips(const Settings& settings,
+    static double GetMips(const detinfo::DetectorPropertiesData& detProp,
+                          const Settings& settings,
                           const double hit_Charge,
                           const geo::View_t hit_View);
   };

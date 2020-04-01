@@ -15,8 +15,6 @@
 #include "lardataobj/RecoBase/Shower.h"
 #include "lardataobj/RecoBase/SpacePoint.h"
 
-#include "larreco/Calorimetry/LinearEnergyAlg.h"
-
 #include "larpandoracontent/LArObjects/LArPfoObjects.h"
 
 #include <memory>

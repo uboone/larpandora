@@ -20,11 +20,11 @@
 
 #include "Pandora/PandoraInternal.h"
 
-namespace art {
-  class EDProducer;
-}
 namespace pandora {
   class Pandora;
+}
+namespace util {
+  class GeometryUtilities;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------
@@ -78,7 +78,6 @@ namespace lar_pandora {
       void Validate() const;
 
       const pandora::Pandora* m_pPrimaryPandora; ///<
-      art::EDProducer* m_pProducer;              ///<
       bool m_shouldRunStitching;                 ///<
       bool
         m_shouldProduceSlices; ///< Whether to produce output slices e.g. may not want to do this if only (re)processing single slices
@@ -287,14 +286,12 @@ namespace lar_pandora {
      *          Create the associations between spacepoints and hits
      *
      *  @param  event the art event
-     *  @param  pProducer the address of the producer module
      *  @param  threeDHitList the input list of 3D hits to convert
      *  @param  pandoraHitToArtHitMap the input mapping from pandora hits to ART hits
      *  @param  outputSpacePoints the output vector of spacepoints
      *  @param  outputSpacePointsToHits the output associations between spacepoints and hits
      */
     static void BuildSpacePoints(const art::Event& event,
-                                 const art::EDProducer* const pProducer,
                                  const std::string& instanceLabel,
                                  const pandora::CaloHitList& threeDHitList,
                                  const CaloHitToArtHitMap& pandoraHitToArtHitMap,
@@ -307,7 +304,6 @@ namespace lar_pandora {
      *          For multiple drift volumes, each pandora cluster can correspond to multiple ART clusters.
      *
      *  @param  event the art event
-     *  @param  pProducer the address of the producer module
      *  @param  clusterList the input list of 2D pandora clusters to convert
      *  @param  pandoraHitToArtHitMap the input mapping from pandora hits to ART hits
      *  @param  pfoToClustersMap the input mapping from pfo ID to cluster IDs
@@ -316,7 +312,6 @@ namespace lar_pandora {
      *  @param  pfoToArtClustersMap the output mapping from pfo ID to art cluster ID
      */
     static void BuildClusters(const art::Event& event,
-                              const art::EDProducer* const pProducer,
                               const std::string& instanceLabel,
                               const pandora::ClusterList& clusterList,
                               const CaloHitToArtHitMap& pandoraHitToArtHitMap,
@@ -330,7 +325,6 @@ namespace lar_pandora {
      *          Create the associations between PFParticle and vertices, spacepoints and clusters
      *
      *  @param  event the art event
-     *  @param  pProducer the address of the producer module
      *  @param  pfoVector the input list of pfos to convert
      *  @param  pfoToVerticesMap the input mapping from pfo ID to vertex IDs
      *  @param  pfoToThreeDHitsMap the input mapping from pfo ID to 3D hit IDs
@@ -341,7 +335,6 @@ namespace lar_pandora {
      *  @param  outputParticlesToClusters the output associations between PFParticles and clusters
      */
     static void BuildPFParticles(const art::Event& event,
-                                 const art::EDProducer* const pProducer,
                                  const std::string& instanceLabel,
                                  const pandora::PfoVector& pfoVector,
                                  const IdToIdVectorMap& pfoToVerticesMap,
@@ -356,7 +349,6 @@ namespace lar_pandora {
      *  @brief  Convert Create the associations between pre-existing PFParticle and additional vertices
      *
      *  @param  event the art event
-     *  @param  pProducer the address of the producer module
      *  @param  instanceLabel instance label
      *  @param  pfoVector the input list of pfos to convert
      *  @param  pfoToVerticesMap the input mapping from pfo ID to vertex IDs
@@ -364,7 +356,6 @@ namespace lar_pandora {
      */
     static void AssociateAdditionalVertices(
       const art::Event& event,
-      const art::EDProducer* const pProducer,
       const std::string& instanceLabel,
       const pandora::PfoVector& pfoVector,
       const IdToIdVectorMap& pfoToVerticesMap,
@@ -374,13 +365,11 @@ namespace lar_pandora {
      *  @brief  Build metadata objects from a list of input pfos
      *
      *  @param  event the art event
-     *  @param  pProducer the address of the producer module
      *  @param  pfoVector the input list of pfos
      *  @param  outputParticleMetadata the output vector of PFParticleMetadata
      *  @param  outputParticlesToMetadata the output associations between PFParticles and metadata
      */
     static void BuildParticleMetadata(const art::Event& event,
-                                      const art::EDProducer* const pProducer,
                                       const std::string& instanceLabel,
                                       const pandora::PfoVector& pfoVector,
                                       PFParticleMetadataCollection& outputParticleMetadata,
@@ -392,7 +381,6 @@ namespace lar_pandora {
      *  @param  settings the settings
      *  @param  pPrimaryPandora the primary pandora instance
      *  @param  event the art event
-     *  @param  pProducer the address of the pandora producer
      *  @param  instanceLabel the label for the collections to be produced
      *  @param  pfoVector the input vector of all pfos to be output
      *  @param  idToHitMap input mapping from pandora hit ID to ART hit
@@ -403,7 +391,6 @@ namespace lar_pandora {
     static void BuildSlices(const Settings& settings,
                             const pandora::Pandora* const pPrimaryPandora,
                             const art::Event& event,
-                            const art::EDProducer* const pProducer,
                             const std::string& instanceLabel,
                             const pandora::PfoVector& pfoVector,
                             const IdToHitMap& idToHitMap,
@@ -423,7 +410,6 @@ namespace lar_pandora {
      *
      *  @param  settings the settings
      *  @param  event the art event
-     *  @param  pProducer the address of the pandora producer
      *  @param  instanceLabel the label for the collections to be produced
      *  @param  pfoVector the input vector of all pfos to be output
      *  @param  idToHitMap input mapping from pandora hit ID to ART hit
@@ -433,7 +419,6 @@ namespace lar_pandora {
      */
     static void CopyAllHitsToSingleSlice(const Settings& settings,
                                          const art::Event& event,
-                                         const art::EDProducer* const pProducer,
                                          const std::string& instanceLabel,
                                          const pandora::PfoVector& pfoVector,
                                          const IdToHitMap& idToHitMap,
@@ -446,7 +431,6 @@ namespace lar_pandora {
      *
      *  @param  pParentPfo the parent pfo from which to build the slice
      *  @param  event the art event
-     *  @param  pProducer the address of the pandora producer
      *  @param  instanceLabel the label for the collections to be produced
      *  @param  idToHitMap input mapping from pandora hit ID to ART hit
      *  @param  outputSlices the output collection of slices to populate
@@ -454,7 +438,6 @@ namespace lar_pandora {
      */
     static unsigned int BuildSlice(const pandora::ParticleFlowObject* const pParentPfo,
                                    const art::Event& event,
-                                   const art::EDProducer* const pProducer,
                                    const std::string& instanceLabel,
                                    const IdToHitMap& idToHitMap,
                                    SliceCollection& outputSlices,
@@ -465,14 +448,12 @@ namespace lar_pandora {
      *          Create the associations between PFParticle and T0s
      *
      *  @param  event the art event
-     *  @param  pProducer the address of the producer module
      *  @param  instanceLabel the label for the collections to be produced
      *  @param  pfoVector the input list of pfos
      *  @param  outputT0s the output vector of T0s
      *  @param  outputParticlesToT0s the output associations between PFParticles and T0s
      */
     static void BuildT0s(const art::Event& event,
-                         const art::EDProducer* const pProducer,
                          const std::string& instanceLabel,
                          const pandora::PfoVector& pfoVector,
                          T0Collection& outputT0s,
@@ -521,6 +502,7 @@ namespace lar_pandora {
      *  @param  the vector of ART clusters
      */
     static std::vector<recob::Cluster> BuildClusters(
+      util::GeometryUtilities const& gser,
       const pandora::Cluster* const pCluster,
       const pandora::ClusterList& clusterList,
       const CaloHitToArtHitMap& pandoraHitToArtHitMap,
@@ -542,7 +524,8 @@ namespace lar_pandora {
      *  If you don't know which algorithm to pick, StandardClusterParamsAlg is a good default.
      *  The hits that are isolated (that is, present in isolatedHits) are not fed to the cluster parameter algorithms.
      */
-    static recob::Cluster BuildCluster(const size_t id,
+    static recob::Cluster BuildCluster(util::GeometryUtilities const& gser,
+                                       const size_t id,
                                        const HitVector& hitVector,
                                        const HitList& isolatedHits,
                                        cluster::ClusterParamsAlgBase& algo);
@@ -563,6 +546,7 @@ namespace lar_pandora {
     /**
      *  @brief  If required, build a T0 for the input pfo
      *
+     *  @param  event the ART event
      *  @param  pPfo the input pfo
      *  @param  pfoVector the input list of pfos
      *  @param  nextId the ID of the T0 - will be incremented if the t0 was produced
@@ -570,7 +554,8 @@ namespace lar_pandora {
      *
      *  @return if a T0 was produced (calculated from the stitching hit shift distance)
      */
-    static bool BuildT0(const pandora::ParticleFlowObject* const pPfo,
+    static bool BuildT0(const art::Event& event,
+                        const pandora::ParticleFlowObject* const pPfo,
                         const pandora::PfoVector& pfoVector,
                         size_t& nextId,
                         anab::T0& t0);
@@ -579,14 +564,12 @@ namespace lar_pandora {
      *  @brief  Add an association between objects with two given ids
      *
      *  @param  event the ART event
-     *  @param  pProducer the address of the producer module
      *  @param  idA the id of an object of type A
      *  @param  idB the id of an object of type B to associate to the first object
      *  @param  association the output association to update
      */
     template <typename A, typename B>
     static void AddAssociation(const art::Event& event,
-                               const art::EDProducer* const pProducer,
                                const std::string& instanceLabel,
                                const size_t idA,
                                const size_t idB,
@@ -596,14 +579,12 @@ namespace lar_pandora {
      *  @brief  Add associations between input objects
      *
      *  @param  event the ART event
-     *  @param  pProducer the address of the producer module
      *  @param  idA the id of an object of type A
      *  @param  aToBMap the input mapping from IDs of objects of type A to IDs of objects of type B to associate
      *  @param  association the output association to update
      */
     template <typename A, typename B>
     static void AddAssociation(const art::Event& event,
-                               const art::EDProducer* const pProducer,
                                const std::string& instanceLabel,
                                const size_t idA,
                                const IdToIdVectorMap& aToBMap,
@@ -613,14 +594,12 @@ namespace lar_pandora {
      *  @brief  Add associations between input objects
      *
      *  @param  event the ART event
-     *  @param  pProducer the address of the producer module
      *  @param  idA the id of an object of type A
      *  @param  bVector the input vector of IDs of objects of type B to associate
      *  @param  association the output association to update
      */
     template <typename A, typename B>
     static void AddAssociation(const art::Event& event,
-                               const art::EDProducer* const pProducer,
                                const std::string& instanceLabel,
                                const size_t idA,
                                const std::vector<art::Ptr<B>>& bVector,
@@ -663,7 +642,6 @@ namespace lar_pandora {
   template <typename A, typename B>
   inline void
   LArPandoraOutput::AddAssociation(const art::Event& event,
-                                   const art::EDProducer* const,
                                    const std::string& instanceLabel,
                                    const size_t idA,
                                    const size_t idB,
@@ -683,7 +661,6 @@ namespace lar_pandora {
   template <typename A, typename B>
   inline void
   LArPandoraOutput::AddAssociation(const art::Event& event,
-                                   const art::EDProducer* const,
                                    const std::string& instanceLabel,
                                    const size_t idA,
                                    const IdToIdVectorMap& aToBMap,
@@ -709,7 +686,6 @@ namespace lar_pandora {
   template <typename A, typename B>
   inline void
   LArPandoraOutput::AddAssociation(const art::Event& event,
-                                   const art::EDProducer* const,
                                    const std::string& instanceLabel,
                                    const size_t idA,
                                    const std::vector<art::Ptr<B>>& bVector,

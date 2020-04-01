@@ -11,6 +11,7 @@
 #include "TTree.h"
 
 #include "larcoreobj/SimpleTypesAndConstants/geo_types.h"
+#include "lardata/DetectorInfoServices/DetectorClocksService.h"
 #include "larpandora/LArPandoraInterface/LArPandoraHelper.h"
 
 #include <string>
@@ -66,7 +67,9 @@ namespace lar_pandora {
      *  @param hitVector the input vector of 2D hits
      *  @param hitsToParticles mapping between 2D hits and PFParticles
      */
-    void FillReco2D(const HitVector& hitVector, const HitsToPFParticles& hitsToParticles);
+    void FillReco2D(const art::Event& event,
+                    const HitVector& hitVector,
+                    const HitsToPFParticles& hitsToParticles);
 
     /**
      *  @brief Store number of 2D hits associated to PFParticle in different ways
@@ -91,7 +94,7 @@ namespace lar_pandora {
      *
      *  @param wireVector the input vector of reconstructed wires
      */
-    void FillRecoWires(const WireVector& wireVector);
+    void FillRecoWires(const art::Event& event, const WireVector& wireVector);
 
     /**
      *  @brief Conversion from wire ID to U/V/W coordinate
@@ -335,9 +338,6 @@ namespace lar_pandora {
       std::cout << "  Event: " << m_event << std::endl;
     }
 
-    // Need DetectorProperties service to convert from ticks to X
-    //  auto const* theDetector = lar::providerFrom<detinfo::DetectorPropertiesService>();
-
     // Need geometry service to convert channel to wire ID
     art::ServiceHandle<geo::Geometry const> theGeometry;
 
@@ -395,7 +395,7 @@ namespace lar_pandora {
     // Loop over Hits (Fill 2D Reco Tree)
     // ==================================
     if (m_printDebug) std::cout << "   PFParticleHitDumper::FillReco2D(...) " << std::endl;
-    this->FillReco2D(hitVector, hitsToParticles);
+    this->FillReco2D(evt, hitVector, hitsToParticles);
 
     // Loop over Hits (Fill Associated 2D Hits Tree)
     // =============================================
@@ -413,7 +413,7 @@ namespace lar_pandora {
     // Loop over Wires (Fill Reco Wire Tree)
     // =====================================
     if (m_printDebug) std::cout << "   PFParticleHitDumper::FillRecoWires(...) " << std::endl;
-    this->FillRecoWires(wireVector);
+    this->FillRecoWires(evt, wireVector);
   }
 
   //------------------------------------------------------------------------------------------------------------------------------------------
@@ -614,7 +614,8 @@ namespace lar_pandora {
   //------------------------------------------------------------------------------------------------------------------------------------------
 
   void
-  PFParticleHitDumper::FillReco2D(const HitVector& hitVector,
+  PFParticleHitDumper::FillReco2D(const art::Event& e,
+                                  const HitVector& hitVector,
                                   const HitsToPFParticles& hitsToParticles)
   {
     // Initialise variables
@@ -632,7 +633,8 @@ namespace lar_pandora {
     if (hitVector.empty()) { m_pReco2D->Fill(); }
 
     // Need DetectorProperties service to convert from ticks to X
-    auto const* theDetector = lar::providerFrom<detinfo::DetectorPropertiesService>();
+    auto const detProp =
+      art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(e);
 
     // Loop over 2D hits
     for (unsigned int i = 0; i < hitVector.size(); ++i) {
@@ -655,8 +657,7 @@ namespace lar_pandora {
       m_wire = wireID.Wire;
 
       m_q = hit->Integral();
-      m_x =
-        theDetector->ConvertTicksToX(hit->PeakTime(), wireID.Plane, wireID.TPC, wireID.Cryostat);
+      m_x = detProp.ConvertTicksToX(hit->PeakTime(), wireID.Plane, wireID.TPC, wireID.Cryostat);
       m_w = this->GetUVW(wireID);
 
       m_pReco2D->Fill();
@@ -666,7 +667,7 @@ namespace lar_pandora {
   //------------------------------------------------------------------------------------------------------------------------------------------
 
   void
-  PFParticleHitDumper::FillRecoWires(const WireVector& wireVector)
+  PFParticleHitDumper::FillRecoWires(const art::Event& e, const WireVector& wireVector)
   {
 
     // Create dummy entry if there are no wires
@@ -676,7 +677,8 @@ namespace lar_pandora {
     art::ServiceHandle<geo::Geometry const> theGeometry;
 
     // Need DetectorProperties service to convert from ticks to X
-    auto const* theDetector = lar::providerFrom<detinfo::DetectorPropertiesService>();
+    auto const detProp =
+      art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(e);
 
     // Loop over wires
     int signalCounter(0);
@@ -714,7 +716,7 @@ namespace lar_pandora {
           m_plane = wireID.Plane;
           m_wire = wireID.Wire;
 
-          m_x = theDetector->ConvertTicksToX(time, wireID.Plane, wireID.TPC, wireID.Cryostat);
+          m_x = detProp.ConvertTicksToX(time, wireID.Plane, wireID.TPC, wireID.Cryostat);
           m_w = this->GetUVW(wireID);
 
           m_pRecoWire->Fill();

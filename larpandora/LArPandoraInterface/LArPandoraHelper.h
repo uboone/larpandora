@@ -477,11 +477,13 @@ namespace lar_pandora {
     /**
      *  @brief Collect the links from reconstructed hits to their true energy deposits
      *
+     *  @param evt the art event containers
      *  @param hitVector the input vector of reconstructed hits
      *  @param simChannelVector the input vector of SimChannels
      *  @param hitsToTrackIDEs the out map from hits to true energy deposits
      */
-    static void BuildMCParticleHitMaps(const HitVector& hitVector,
+    static void BuildMCParticleHitMaps(const art::Event& evt,
+                                       const HitVector& hitVector,
                                        const SimChannelVector& simChannelVector,
                                        HitsToTrackIDEs& hitsToTrackIDEs);
 

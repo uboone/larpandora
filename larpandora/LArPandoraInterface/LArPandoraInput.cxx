@@ -38,7 +38,8 @@
 namespace lar_pandora {
 
   void
-  LArPandoraInput::CreatePandoraHits2D(const Settings& settings,
+  LArPandoraInput::CreatePandoraHits2D(const art::Event& e,
+                                       const Settings& settings,
                                        const LArDriftVolumeMap& driftVolumeMap,
                                        const HitVector& hitVector,
                                        IdToHitMap& idToHitMap)
@@ -53,7 +54,8 @@ namespace lar_pandora {
     const pandora::Pandora* pPandora(settings.m_pPrimaryPandora);
 
     art::ServiceHandle<geo::Geometry const> theGeometry;
-    auto const* theDetector = lar::providerFrom<detinfo::DetectorPropertiesService>();
+    auto const detProp =
+      art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(e);
     const bool isDualPhase(theGeometry->MaxPlanes() == 2);
 
     // Loop over ART hits
@@ -75,12 +77,12 @@ namespace lar_pandora {
       const double hit_TimeEnd(hit->PeakTimePlusRMS());
 
       // Get hit X coordinate and, if using a single global drift volume, remove any out-of-time hits here
-      const double xpos_cm(theDetector->ConvertTicksToX(
-        hit_Time, hit_WireID.Plane, hit_WireID.TPC, hit_WireID.Cryostat));
+      const double xpos_cm(
+        detProp.ConvertTicksToX(hit_Time, hit_WireID.Plane, hit_WireID.TPC, hit_WireID.Cryostat));
       const double dxpos_cm(
-        std::fabs(theDetector->ConvertTicksToX(
+        std::fabs(detProp.ConvertTicksToX(
                     hit_TimeEnd, hit_WireID.Plane, hit_WireID.TPC, hit_WireID.Cryostat) -
-                  theDetector->ConvertTicksToX(
+                  detProp.ConvertTicksToX(
                     hit_TimeStart, hit_WireID.Plane, hit_WireID.TPC, hit_WireID.Cryostat)));
 
       // Get hit Y and Z coordinates, based on central position of wire
@@ -95,7 +97,7 @@ namespace lar_pandora {
 
       // Get other hit properties here
       const double wire_pitch_cm(theGeometry->WirePitch(hit_View)); // cm
-      const double mips(LArPandoraInput::GetMips(settings, hit_Charge, hit_View));
+      const double mips(LArPandoraInput::GetMips(detProp, settings, hit_Charge, hit_View));
 
       // Create Pandora CaloHit
       lar_content::LArCaloHitParameters caloHitParameters;
@@ -816,11 +818,15 @@ namespace lar_pandora {
   //------------------------------------------------------------------------------------------------------------------------------------------
 
   float
-  LArPandoraInput::GetTrueX0(const art::Ptr<simb::MCParticle>& particle, const int nt)
+  LArPandoraInput::GetTrueX0(const art::Event& e,
+                             const art::Ptr<simb::MCParticle>& particle,
+                             const int nt)
   {
     art::ServiceHandle<geo::Geometry const> theGeometry;
-    auto const* theTime = lar::providerFrom<detinfo::DetectorClocksService>();
-    auto const* theDetector = lar::providerFrom<detinfo::DetectorPropertiesService>();
+    auto const clock_data =
+      art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(e);
+    auto const det_prop =
+      art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(e, clock_data);
 
     unsigned int which_tpc(0);
     unsigned int which_cstat(0);
@@ -828,30 +834,30 @@ namespace lar_pandora {
     theGeometry->PositionToTPC(pos, which_tpc, which_cstat);
 
     const float vtxT(particle->T(nt));
-    const float vtxTDC(theTime->TPCG4Time2Tick(vtxT));
-    const float vtxTDC0(theDetector->TriggerOffset());
+    const float vtxTDC(clock_data.TPCG4Time2Tick(vtxT));
+    const float vtxTDC0(trigger_offset(clock_data));
 
     const geo::TPCGeo& theTpc = theGeometry->Cryostat(which_cstat).TPC(which_tpc);
     const float driftDir((theTpc.DriftDirection() == geo::kNegX) ? +1.0 : -1.0);
-    return (driftDir * (vtxTDC - vtxTDC0) * theDetector->GetXTicksCoefficient());
+    return (driftDir * (vtxTDC - vtxTDC0) * det_prop.GetXTicksCoefficient());
   }
 
   //------------------------------------------------------------------------------------------------------------------------------------------
 
   double
-  LArPandoraInput::GetMips(const Settings& settings,
+  LArPandoraInput::GetMips(detinfo::DetectorPropertiesData const& detProp,
+                           const Settings& settings,
                            const double hit_Charge,
                            const geo::View_t hit_View)
   {
     art::ServiceHandle<geo::Geometry const> theGeometry;
-    auto const* theDetector = lar::providerFrom<detinfo::DetectorPropertiesService>();
 
     // TODO: Unite this procedure with other calorimetry procedures under development
     const double dQdX(hit_Charge / (theGeometry->WirePitch(hit_View))); // ADC/cm
     const double dQdX_e(dQdX /
-                        (theDetector->ElectronsToADC() * settings.m_recombination_factor)); // e/cm
+                        (detProp.ElectronsToADC() * settings.m_recombination_factor)); // e/cm
     const double dEdX(settings.m_useBirksCorrection ?
-                        theDetector->BirksCorrection(dQdX_e) :
+                        detProp.BirksCorrection(dQdX_e) :
                         dQdX_e * 1000. / util::kGeVToElectrons); // MeV/cm
     double mips(dEdX / settings.m_dEdX_mip);
 

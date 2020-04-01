@@ -913,11 +913,13 @@ namespace lar_pandora {
   //------------------------------------------------------------------------------------------------------------------------------------------
 
   void
-  LArPandoraHelper::BuildMCParticleHitMaps(const HitVector& hitVector,
+  LArPandoraHelper::BuildMCParticleHitMaps(const art::Event& evt,
+                                           const HitVector& hitVector,
                                            const SimChannelVector& simChannelVector,
                                            HitsToTrackIDEs& hitsToTrackIDEs)
   {
-    auto const* ts = lar::providerFrom<detinfo::DetectorClocksService>();
+    auto const clock_data =
+      art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(evt);
 
     SimChannelMap simChannelMap;
 
@@ -938,8 +940,8 @@ namespace lar_pandora {
       if (simChannelMap.end() == sIter) continue; // Hit has no truth information [continue]
 
       // ATTN: Need to convert TDCtick (integer) to TDC (unsigned integer) before passing to simChannel
-      const raw::TDCtick_t start_tick(ts->TPCTick2TDC(hit->PeakTimeMinusRMS()));
-      const raw::TDCtick_t end_tick(ts->TPCTick2TDC(hit->PeakTimePlusRMS()));
+      const raw::TDCtick_t start_tick(clock_data.TPCTick2TDC(hit->PeakTimeMinusRMS()));
+      const raw::TDCtick_t end_tick(clock_data.TPCTick2TDC(hit->PeakTimePlusRMS()));
       const unsigned int start_tdc((start_tick < 0) ? 0 : start_tick);
       const unsigned int end_tdc(end_tick);
 
@@ -1054,7 +1056,7 @@ namespace lar_pandora {
     LArPandoraHelper::CollectSimChannels(evt, label, simChannelVector, areSimChannelsValid);
 
     LArPandoraHelper::CollectMCParticles(evt, label, truthToParticles, particlesToTruth);
-    LArPandoraHelper::BuildMCParticleHitMaps(hitVector, simChannelVector, hitsToTrackIDEs);
+    LArPandoraHelper::BuildMCParticleHitMaps(evt, hitVector, simChannelVector, hitsToTrackIDEs);
     LArPandoraHelper::BuildMCParticleHitMaps(
       hitsToTrackIDEs, truthToParticles, particlesToHits, hitsToParticles, daughterMode);
   }

@@ -76,7 +76,6 @@ namespace lar_pandora {
     m_inputSettings.m_mips_if_negative = pset.get<double>("MipsIfNegative", 0.);
     m_inputSettings.m_mips_to_gev = pset.get<double>("MipsToGeV", 3.5e-4);
     m_inputSettings.m_recombination_factor = pset.get<double>("RecombinationFactor", 0.63);
-    m_outputSettings.m_pProducer = this;
     m_outputSettings.m_shouldRunStitching = m_shouldRunStitching;
     m_outputSettings.m_shouldProduceSlices = pset.get<bool>("ShouldProduceSlices", true);
     m_outputSettings.m_shouldProduceTestBeamInteractionVertices =
@@ -207,7 +206,7 @@ namespace lar_pandora {
       LArPandoraHelper::CollectSimChannels(
         evt, m_simChannelModuleLabel, artSimChannels, areSimChannelsValid);
       if (!artSimChannels.empty()) {
-        LArPandoraHelper::BuildMCParticleHitMaps(artHits, artSimChannels, artHitsToTrackIDEs);
+        LArPandoraHelper::BuildMCParticleHitMaps(evt, artHits, artSimChannels, artHitsToTrackIDEs);
       }
       else if (!areSimChannelsValid) {
         if (m_backtrackerModuleLabel.empty())
@@ -225,7 +224,8 @@ namespace lar_pandora {
       }
     }
 
-    LArPandoraInput::CreatePandoraHits2D(m_inputSettings, m_driftVolumeMap, artHits, idToHitMap);
+    LArPandoraInput::CreatePandoraHits2D(
+      evt, m_inputSettings, m_driftVolumeMap, artHits, idToHitMap);
 
     if (m_enableMCParticles && (m_disableRealDataCheck || !evt.isRealData())) {
       LArPandoraInput::CreatePandoraMCParticles(m_inputSettings,
