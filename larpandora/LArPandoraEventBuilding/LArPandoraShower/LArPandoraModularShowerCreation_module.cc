@@ -1,5 +1,5 @@
 //################################################################################
-//### Name: LArPandoraModularShowerCreation                                    ###
+//### Name: LArPandoraModularShower                                                      ###
 //### Author: Dominic Barker and Ed Tyley (e.tyley@sheffield.ac.uk)            ###
 //### Date: 15.05.19                                                           ###
 //### Description: Generic Shower Charaterisation module which allows the      ###
@@ -10,8 +10,6 @@
 //###              ShowerDirection                                             ###
 //###              ShowerEnergy                                                ###
 //###              ShowerdEdx                                                  ###
-//###              ShowerLength                                                ###
-//###              ShowerOpeningAngle                                          ###
 //################################################################################
 
 //Framework includes
@@ -44,33 +42,32 @@
 
 namespace reco {
   namespace shower {
-    class LArPandoraModularShowerCreation;
+    class LArPandoraModularShower;
   }
 }
 
 //Class
 
-class reco::shower::LArPandoraModularShowerCreation: public art::EDProducer {
+class reco::shower::LArPandoraModularShower: public art::EDProducer {
   public:
 
-    LArPandoraModularShowerCreation(fhicl::ParameterSet const& pset);
+    LArPandoraModularShower(fhicl::ParameterSet const& pset);
 
   private:
 
     void produce(art::Event& evt);
 
-    //This function returns the art::Ptr to the data object InstanceName.
-    //In the background it uses the PtrMaker which requires the element index of
+    //This function returns the art::Ptr to the data object InstanceName. In the background it uses the PtrMaker which requires the element index of
     //the unique ptr (iter).
     template <class T >
       art::Ptr<T> GetProducedElementPtr(std::string InstanceName, reco::shower::ShowerElementHolder& ShowerEleHolder, int iter=-1);
 
 
     //fcl object names
-    art::InputTag fPFParticleLabel;
+    art::InputTag fPFParticleModuleLabel;
+    bool          fSecondInteration;
     bool          fAllowPartialShowers;
-    int           fVerbose;
-    bool          fUseAllParticles;
+    bool          fVerbose;
 
     //tool tags which calculate the characteristics of the shower
     std::string fShowerStartPositionLabel;
@@ -87,26 +84,23 @@ class reco::shower::LArPandoraModularShowerCreation: public art::EDProducer {
 
     //map to the unique ptrs to
     reco::shower::ShowerProduedPtrsHolder uniqueproducerPtrs;
+
 };
 
-//This function returns the art::Ptr to the data object InstanceName.
-//In the background it uses the PtrMaker which requires the element index of
+//This function returns the art::Ptr to the data object InstanceName. In the background it uses the PtrMaker which requires the element index of
 //the unique ptr (iter).
 template <class T >
-art::Ptr<T> reco::shower::LArPandoraModularShowerCreation::GetProducedElementPtr(
-    std::string InstanceName, reco::shower::ShowerElementHolder& ShowerEleHolder, int iter){
+art::Ptr<T> reco::shower::LArPandoraModularShower::GetProducedElementPtr(std::string InstanceName, reco::shower::ShowerElementHolder& ShowerEleHolder, int iter){
 
   bool check_element = ShowerEleHolder.CheckElement(InstanceName);
   if(!check_element){
-    throw cet::exception("LArPandoraModularShowerCreation")
-      << "To get a element that does not exist" << std::endl;
+    throw cet::exception("LArPandoraModularShower") << "To get a element that does not exist" << std::endl;
     return art::Ptr<T>();
   }
 
   bool check_ptr = uniqueproducerPtrs.CheckUniqueProduerPtr(InstanceName);
   if(!check_ptr){
-    throw cet::exception("LArPandoraModularShowerCreation")
-      << "Tried to get a ptr that does not exist" << std::endl;
+    throw cet::exception("LArPandoraModularShower") << "Tried to get a ptr that does not exist" << std::endl;
     return art::Ptr<T>();
   }
 
@@ -125,48 +119,18 @@ art::Ptr<T> reco::shower::LArPandoraModularShowerCreation::GetProducedElementPtr
   return artptr;
 }
 
-reco::shower::LArPandoraModularShowerCreation::LArPandoraModularShowerCreation(fhicl::ParameterSet const& pset) :
-  EDProducer{pset},
-  fPFParticleLabel(pset.get<art::InputTag>("PFParticleLabel")),
-  fAllowPartialShowers(pset.get<bool>("AllowPartialShowers")),
-  fVerbose(pset.get<int>("Verbose", 0)),
-  fUseAllParticles(pset.get<bool>("UseAllParticles", false)),
-  fShowerStartPositionLabel(pset.get<std::string>("ShowerStartPositionLabel")),
-  fShowerDirectionLabel(pset.get<std::string>("ShowerDirectionLabel")),
-  fShowerEnergyLabel(pset.get<std::string>("ShowerEnergyLabel")),
-  fShowerLengthLabel(pset.get<std::string>("ShowerLengthLabel")),
-  fShowerOpeningAngleLabel(pset.get<std::string>("ShowerOpeningAngleLabel")),
-  fShowerdEdxLabel(pset.get<std::string>("ShowerdEdxLabel")),
-  fShowerBestPlaneLabel(pset.get<std::string>("ShowerBestPlaneLabel"))
+
+
+reco::shower::LArPandoraModularShower::LArPandoraModularShower(fhicl::ParameterSet const& pset) :
+  EDProducer{pset}
 {
   //Intialise the tools
-  auto tool_psets = pset.get<std::vector<fhicl::ParameterSet>>("ShowerFinderTools");
-  for (auto& tool_pset : tool_psets) {
-
-    std::string tool_name = tool_pset.get<std::string>("tool_type");
-    // If the PFPaticle label is not set for the tool, make it use the one for the module
-    // Note we also need to set the label in the Alg, via the base tool
-    if (!tool_pset.has_key("PFParticleLabel")){
-
-      // I cannot pass an art::InputTag as it is mangled, so lets make a string instead
-      std::string PFParticleLabelString(fPFParticleLabel.label()+":"+fPFParticleLabel.instance()
-          +":"+fPFParticleLabel.process());
-
-      tool_pset.put<std::string>("PFParticleLabel", PFParticleLabelString);
-      fhicl::ParameterSet base_pset = tool_pset.get<fhicl::ParameterSet>("BaseTools");
-      fhicl::ParameterSet alg_pset = base_pset.get<fhicl::ParameterSet>("LArPandoraShowerAlg");
-      alg_pset.put<std::string>("PFParticleLabel", PFParticleLabelString);
-      base_pset.put_or_replace<fhicl::ParameterSet>("LArPandoraShowerAlg", alg_pset);
-      tool_pset.put_or_replace<fhicl::ParameterSet>("BaseTools", base_pset);
-    }
-
-    // If we have not explicitly set verboseness for a given tool, use global level
-    if (!tool_pset.has_key("Verbose")){
-      tool_pset.put<int>("Verbose", fVerbose);
-    }
-
+  auto const tool_psets = pset.get<std::vector<fhicl::ParameterSet>>("ShowerFinderTools");
+  for (auto const& tool_pset : tool_psets) {
     fShowerTools.push_back(art::make_tool<ShowerRecoTools::IShowerTool>(tool_pset));
+    std::string tool_name = tool_pset.get<std::string>("tool_type");
     fShowerToolNames.push_back(tool_name);
+    std::cout<< "Tools List: " << tool_name << std::endl;
   }
 
   //  Initialise the EDProducer ptr in the tools
@@ -179,6 +143,17 @@ reco::shower::LArPandoraModularShowerCreation::LArPandoraModularShowerCreation(f
   }
 
   //Initialise the other paramters.
+  fPFParticleModuleLabel      = pset.get<art::InputTag>("PFParticleModuleLabel","pandora");
+  fShowerStartPositionLabel   = pset.get<std::string  >("ShowerStartPositionLabel");
+  fShowerDirectionLabel       = pset.get<std::string  >("ShowerDirectionLabel");
+  fShowerEnergyLabel          = pset.get<std::string  >("ShowerEnergyLabel");
+  fShowerLengthLabel          = pset.get<std::string  >("ShowerLengthLabel");
+  fShowerOpeningAngleLabel    = pset.get<std::string  > ("ShowerOpeningAngleLabel");
+  fShowerdEdxLabel            = pset.get<std::string  >("ShowerdEdxLabel");
+  fShowerBestPlaneLabel       = pset.get<std::string  >("ShowerBestPlaneLabel");
+  fSecondInteration           = pset.get<bool         >("SecondInteration",false);
+  fAllowPartialShowers        = pset.get<bool         >("AllowPartialShowers",false);
+  fVerbose                    = pset.get<bool         >("Verbose",false);
 
   produces<std::vector<recob::Shower> >();
   produces<art::Assns<recob::Shower, recob::Hit> >();
@@ -194,54 +169,50 @@ reco::shower::LArPandoraModularShowerCreation::LArPandoraModularShowerCreation(f
   uniqueproducerPtrs.SetShowerUniqueProduerPtr(type<art::Assns<recob::Shower, recob::PFParticle> >(),"pfShowerAssociationsbase");
 
   uniqueproducerPtrs.PrintPtrs();
+
 }
 
-void reco::shower::LArPandoraModularShowerCreation::produce(art::Event& evt) {
+void reco::shower::LArPandoraModularShower::produce(art::Event& evt) {
 
   //Ptr makers for the products
   uniqueproducerPtrs.SetPtrMakers(evt);
-  reco::shower::ShowerElementHolder showerEleHolder;
+  reco::shower::ShowerElementHolder selement_holder;
 
   //Get the PFParticles
   art::Handle<std::vector<recob::PFParticle> > pfpHandle;
   std::vector<art::Ptr<recob::PFParticle> > pfps;
-  if (evt.getByLabel(fPFParticleLabel, pfpHandle)){
+  if (evt.getByLabel(fPFParticleModuleLabel, pfpHandle)){
     art::fill_ptr_vector(pfps, pfpHandle);
   }
   else {
-    throw cet::exception("LArPandoraModularShowerCreation")
-      << "pfps not loaded. Maybe you got the module label wrong?" << std::endl;
+    throw cet::exception("LArPandoraModularShower") << "pfps not loaded. Maybe you got the module label wrong?" << std::endl;
   }
 
   //Handle to access the pandora hits assans
   art::Handle<std::vector<recob::Cluster> > clusterHandle;
-  if (!evt.getByLabel(fPFParticleLabel,clusterHandle)){
-    throw cet::exception("LArPandoraModularShowerCreation")
-      << "pfp clusters are not loaded." << std::endl;
+  if (!evt.getByLabel(fPFParticleModuleLabel,clusterHandle)){
+    throw cet::exception("LArPandoraModularShower") << "pfp clusters are not loaded." << std::endl;
   }
 
   //Get the assoications to hits, clusters and spacespoints
-  art::FindManyP<recob::Hit> fmh = showerEleHolder.GetFindManyP<recob::Hit>(
-      clusterHandle, evt, fPFParticleLabel);
-  art::FindManyP<recob::Cluster> fmcp = showerEleHolder.GetFindManyP<recob::Cluster>(
-      pfpHandle, evt, fPFParticleLabel);
-  art::FindManyP<recob::SpacePoint> fmspp = showerEleHolder.GetFindManyP<recob::SpacePoint>(
-      pfpHandle, evt, fPFParticleLabel);
-  // art::FindManyP<recob::Hit> fmh(clusterHandle, evt, fPFParticleLabel);
-  // art::FindManyP<recob::Cluster> fmcp(pfpHandle, evt, fPFParticleLabel);
-  // art::FindManyP<recob::SpacePoint> fmspp(pfpHandle, evt, fPFParticleLabel);
+  art::FindManyP<recob::Hit> fmh = selement_holder.GetFindManyP<recob::Hit>(
+      clusterHandle, evt, fPFParticleModuleLabel);
+  art::FindManyP<recob::Cluster> fmcp = selement_holder.GetFindManyP<recob::Cluster>(
+      pfpHandle, evt, fPFParticleModuleLabel);
+  art::FindManyP<recob::SpacePoint> fmspp = selement_holder.GetFindManyP<recob::SpacePoint>(
+      pfpHandle, evt, fPFParticleModuleLabel);
+  // art::FindManyP<recob::Hit> fmh(clusterHandle, evt, fPFParticleModuleLabel);
+  // art::FindManyP<recob::Cluster> fmcp(pfpHandle, evt, fPFParticleModuleLabel);
+  // art::FindManyP<recob::SpacePoint> fmspp(pfpHandle, evt, fPFParticleModuleLabel);
 
   if(!fmcp.isValid()){
-    throw cet::exception("LArPandoraModularShowerCreation")
-      << "Find many clusters is not valid." << std::endl;
+    throw cet::exception("LArPandoraModularShower") << "Find many clusters is not valid." << std::endl;
   }
   if(!fmh.isValid()){
-    throw cet::exception("LArPandoraModularShowerCreation")
-      << "Find many hits is not valid." << std::endl;
+    throw cet::exception("LArPandoraModularShower") << "Find many hits is not valid." << std::endl;
   }
   if(!fmspp.isValid()){
-    throw cet::exception("LArPandoraModularShowerCreation")
-      << "Find many spacepoints is not valid." << std::endl;
+    throw cet::exception("LArPandoraModularShower") << "Find many spacepoints is not valid." << std::endl;
   }
 
   //Holder to pass to the functions, contains the 6 properties of the shower
@@ -251,27 +222,16 @@ void reco::shower::LArPandoraModularShowerCreation::produce(art::Event& evt) {
   // - Initial Track Hits
   // - Energy
   // - dEdx
-  // - Length
-  // - Opening Angle
 
   int shower_iter = 0;
   //Loop of the pf particles
   for(auto const& pfp: pfps){
 
     //Update the shower iterator
-    showerEleHolder.SetShowerNumber(shower_iter);
+    selement_holder.SetShowerNumber(shower_iter);
 
-    //loop only over showers unless otherwise specified
-    if (!fUseAllParticles && pfp->PdgCode() != 11 && pfp->PdgCode() != 22)
-      continue;
-
-    //Get the associated hits,clusters and spacepoints
-    std::vector<art::Ptr<recob::Cluster> >    showerClusters    = fmcp.at(pfp.key());
-    std::vector<art::Ptr<recob::SpacePoint> > showerSpacePoints = fmspp.at(pfp.key());
-
-    // Check the pfp has at least 1 cluster (i.e. not a pfp neutrino)
-    if (!showerClusters.size())
-      continue;
+    //loop only over showers.
+    if(pfp->PdgCode() != 11 && pfp->PdgCode() != 22){continue;}
 
     //Calculate the shower properties
     //Loop over the shower tools
@@ -280,147 +240,140 @@ void reco::shower::LArPandoraModularShowerCreation::produce(art::Event& evt) {
     for(auto const& fShowerTool: fShowerTools){
 
       //Calculate the metric
-      std::string evd_disp_append = fShowerToolNames[i]+"_iteration"+std::to_string(0) + "_" +
-        this->moduleDescription().moduleLabel();
+      std::string evd_disp_append = fShowerToolNames[i]+"_iteration"+std::to_string(0) + "_" + this->moduleDescription().moduleLabel();
 
-      err = fShowerTool->RunShowerTool(pfp,evt,showerEleHolder,evd_disp_append);
+      err = fShowerTool->RunShowerTool(pfp,evt,selement_holder,evd_disp_append);
 
-      if(err && fVerbose){
-        mf::LogError("LArPandoraModularShowerCreation") << "Error in shower tool: " << fShowerToolNames[i]
-          << " with code: " << err << std::endl;
+      if(err){
+        mf::LogError("LArPandoraModularShower") << "Error in shower tool: " << fShowerToolNames[i]  << " with code: " << err << std::endl;
+        break;
       }
       ++i;
+    }
+    //Should we do a second interaction now we have done a first pass of the calculation
+    i=0;
+    if(fSecondInteration){
+
+      for(auto const& fShowerTool: fShowerTools){
+        //Calculate the metric
+        std::string evd_disp_append = fShowerToolNames[i]+"_iteration"+std::to_string(1) + "_" + this->moduleDescription().moduleLabel();
+
+        err = fShowerTool->RunShowerTool(pfp,evt,selement_holder,evd_disp_append);
+
+        if(err){
+          mf::LogError("LArPandoraModularShower") << "Error in shower tool: " << fShowerToolNames[i]  << " with code: " << err << std::endl;
+          break;
+        }
+        ++i;
+      }
     }
 
     //If we are are not allowing partial shower check all of the things
     if(!fAllowPartialShowers){
       // If we recieved an error call from a tool return;
+      if(err){
+        mf::LogError("LArPandoraModularShower") << "Error on tool. Assuming all the shower products and properties were not set and bailing." << std::endl;
+        continue;
+      }
 
       // Check everything we need is in the shower element holder
-      if(!showerEleHolder.CheckElement(fShowerStartPositionLabel)){
-        if (fVerbose)
-          mf::LogError("LArPandoraModularShowerCreation")
-            << "The start position is not set in the element holder. bailing" << std::endl;
+      if(!selement_holder.CheckElement(fShowerStartPositionLabel)){
+        mf::LogError("LArPandoraModularShower") << "The start position is not set in the element holder. bailing" << std::endl;
         continue;
       }
-      if(!showerEleHolder.CheckElement(fShowerDirectionLabel)){
-        if (fVerbose)
-          mf::LogError("LArPandoraModularShowerCreation")
-            << "The direction is not set in the element holder. bailing" << std::endl;
+      if(!selement_holder.CheckElement(fShowerDirectionLabel)){
+        mf::LogError("LArPandoraModularShower") << "The direction is not set in the element holder. bailing" << std::endl;
         continue;
       }
-      if(!showerEleHolder.CheckElement(fShowerEnergyLabel)){
-        if (fVerbose)
-          mf::LogError("LArPandoraModularShowerCreation")
-            << "The energy is not set in the element holder. bailing" << std::endl;
+      if(!selement_holder.CheckElement(fShowerEnergyLabel)){
+        mf::LogError("LArPandoraModularShower") << "The energy is not set in the element holder. bailing" << std::endl;
         continue;
       }
-      if(!showerEleHolder.CheckElement(fShowerdEdxLabel)){
-        if (fVerbose)
-          mf::LogError("LArPandoraModularShowerCreation")
-            << "The dEdx is not set in the element holder. bailing" << std::endl;
+      if(!selement_holder.CheckElement(fShowerdEdxLabel)){
+        mf::LogError("LArPandoraModularShower") << "The dEdx is not set in the element holder. bailing" << std::endl;
         continue;
       }
-      if(!showerEleHolder.CheckElement(fShowerBestPlaneLabel)){
-        if (fVerbose)
-          mf::LogError("LArPandoraModularShowerCreation")
-            << "The BestPlane is not set in the element holder. bailing" << std::endl;
+      if(!selement_holder.CheckElement(fShowerBestPlaneLabel)){
+        mf::LogError("LArPandoraModularShower") << "The BestPlane is not set in the element holder. bailing" << std::endl;
         continue;
       }
-      if(!showerEleHolder.CheckElement(fShowerLengthLabel)){
-        if (fVerbose)
-          mf::LogError("LArPandoraModularShowerCreation")
-            << "The length is not set in the element holder. bailing" << std::endl;
+      if(!selement_holder.CheckElement(fShowerLengthLabel)){
+        mf::LogError("LArPandoraModularShower") << "The length is not set in the element holder. bailing" << std::endl;
         continue;
       }
-      if(!showerEleHolder.CheckElement(fShowerOpeningAngleLabel)){
-        if (fVerbose)
-          mf::LogError("LArPandoraModularShowerCreation")
-            << "The opening angle is not set in the element holder. bailing" << std::endl;
+      if(!selement_holder.CheckElement(fShowerOpeningAngleLabel)){
+        mf::LogError("LArPandoraModularShower") << "The opening angle is not set in the element holder. bailing" << std::endl;
         continue;
       }
 
       //Check All of the products that have been asked to be checked.
-      bool elements_are_set = showerEleHolder.CheckAllElementTags();
+      bool elements_are_set = selement_holder.CheckAllElementTags();
       if(!elements_are_set){
-        if (fVerbose)
-          mf::LogError("LArPandoraModularShowerCreation")
-            << "Not all the elements in the property holder which should be set are not. Bailing. " << std::endl;
+        mf::LogError("LArPandoraModularShower") << "Not all the elements in the property holder which should be set are not. Bailing. " << std::endl;
         continue;
       }
 
       ///Check all the producers
-      bool producers_are_set = uniqueproducerPtrs.CheckAllProducedElements(showerEleHolder);
+      bool producers_are_set = uniqueproducerPtrs.CheckAllProducedElements(selement_holder);
       if(!producers_are_set){
-        if (fVerbose)
-          mf::LogError("LArPandoraModularShowerCreation")
-            << "Not all the elements in the property holder which are produced are not set. Bailing. " << std::endl;
+        mf::LogError("LArPandoraModularShower") << "Not all the elements in the property holder which are produced are not set. Bailing. " << std::endl;
         continue;
       }
     }
 
     //Get the properties
-    TVector3            ShowerStartPosition     = {-999,-999,-999};
-    TVector3            ShowerDirection         = {-999,-999,-999};
-    std::vector<double> ShowerEnergy            = {-999,-999,-999};
-    std::vector<double> ShowerdEdx              = {-999,-999,-999};
-    int                 BestPlane               = -999;
-    double              ShowerLength            = -999;
-    double              ShowerOpeningAngle      = -999;
+    TVector3                           ShowerStartPosition  = {-999,-999,-999};
+    TVector3                           ShowerDirection      = {-999,-999,-999};
+    std::vector<double>                ShowerEnergy         = {-999,-999,-999};
+    std::vector<double>                ShowerdEdx           = {-999,-999,-999};
+    int                                BestPlane            = -999;
+    double                             ShowerLength         = -999;
+    double                             ShowerOpeningAngle   = -999;
 
-    TVector3            ShowerStartPositionErr  = {-999,-999,-999};
-    TVector3            ShowerDirectionErr      = {-999,-999,-999};
-    std::vector<double> ShowerEnergyErr         = {-999,-999,-999};
-    std::vector<double> ShowerdEdxErr           = {-999,-999,-999};
+    TVector3                           ShowerStartPositionErr  = {-999,-999,-999};
+    TVector3                           ShowerDirectionErr      = {-999,-999,-999};
+    std::vector<double>                ShowerEnergyErr         = {-999,-999,-999};
+    std::vector<double>                ShowerdEdxErr           = {-999,-999,-999};
 
     err = 0;
-    if(showerEleHolder.CheckElement(fShowerStartPositionLabel))
-      err += showerEleHolder.GetElementAndError(fShowerStartPositionLabel,ShowerStartPosition,ShowerStartPositionErr);
-    if(showerEleHolder.CheckElement(fShowerDirectionLabel))
-      err += showerEleHolder.GetElementAndError(fShowerDirectionLabel,ShowerDirection,ShowerDirectionErr);
-    if(showerEleHolder.CheckElement(fShowerEnergyLabel))
-      err += showerEleHolder.GetElementAndError(fShowerEnergyLabel,ShowerEnergy,ShowerEnergyErr);
-    if(showerEleHolder.CheckElement(fShowerdEdxLabel))
-      err += showerEleHolder.GetElementAndError(fShowerdEdxLabel,ShowerdEdx,ShowerdEdxErr  );
-    if(showerEleHolder.CheckElement(fShowerBestPlaneLabel))
-      err += showerEleHolder.GetElement(fShowerBestPlaneLabel,BestPlane);
-    if(showerEleHolder.CheckElement(fShowerLengthLabel))
-      err += showerEleHolder.GetElement(fShowerLengthLabel,ShowerLength);
-    if(showerEleHolder.CheckElement(fShowerOpeningAngleLabel))
-      err += showerEleHolder.GetElement(fShowerOpeningAngleLabel,ShowerOpeningAngle);
+    if(selement_holder.CheckElement(fShowerStartPositionLabel))    err += selement_holder.GetElementAndError(fShowerStartPositionLabel,ShowerStartPosition,ShowerStartPositionErr);
+    if(selement_holder.CheckElement(fShowerDirectionLabel))        err += selement_holder.GetElementAndError(fShowerDirectionLabel,ShowerDirection,ShowerDirectionErr);
+    if(selement_holder.CheckElement(fShowerEnergyLabel))           err += selement_holder.GetElementAndError(fShowerEnergyLabel,ShowerEnergy,ShowerEnergyErr);
+    if(selement_holder.CheckElement(fShowerdEdxLabel))             err += selement_holder.GetElementAndError(fShowerdEdxLabel,ShowerdEdx,ShowerdEdxErr  );
+    if(selement_holder.CheckElement(fShowerBestPlaneLabel))        err += selement_holder.GetElement(fShowerBestPlaneLabel,BestPlane);
+    if(selement_holder.CheckElement(fShowerLengthLabel))           err += selement_holder.GetElement(fShowerLengthLabel,ShowerLength);
+    if(selement_holder.CheckElement(fShowerOpeningAngleLabel))     err += selement_holder.GetElement(fShowerOpeningAngleLabel,ShowerOpeningAngle);
 
     if(err){
-      throw cet::exception("LArPandoraModularShowerCreation")
-        << "Error in LArPandoraModularShowerCreation Module. A Check on a shower property failed " << std::endl;
+      throw cet::exception("LArPandoraModularShower")  << "Error in LArPandoraModularShower Module. A Check on a shower property failed " << std::endl;
     }
 
-    if(fVerbose>1){
+    if(fVerbose){
       //Check the shower
-      std::cout << "Shower Vertex: X:" << ShowerStartPosition.X() << " Y: "
-        << ShowerStartPosition.Y() << " Z: " << ShowerStartPosition.Z() << std::endl;
-      std::cout << "Shower Direction: X:" << ShowerDirection.X() << " Y: "
-        << ShowerDirection.Y() << " Z: " << ShowerDirection.Z() << std::endl;
-      std::cout << "Shower dEdx: Plane 0: " << ShowerdEdx.at(0) << " Plane 1: "
-        << ShowerdEdx.at(1) << " Plane 2: " << ShowerdEdx.at(2) << std::endl;
-      std::cout << "Shower Energy: Plane 0: " << ShowerEnergy.at(0) << " Plane 1: "
-        << ShowerEnergy.at(1) << " Plane 2: " << ShowerEnergy.at(2) << std::endl;
-      std::cout << "Shower Best Plane: " << BestPlane << std::endl;
-      std::cout << "Shower Length: " << ShowerLength << std::endl;
-      std::cout << "Shower Opening Angle: " << ShowerOpeningAngle << std::endl;
+      std::cout<<"Shower Vertex: X:"<<ShowerStartPosition.X()<<" Y: "<<ShowerStartPosition.Y()<<" Z: "<<ShowerStartPosition.Z()<<std::endl;
+      std::cout<<"Shower Direction: X:"<<ShowerDirection.X()<<" Y: "<<ShowerDirection.Y()<<" Z: "<<ShowerDirection.Z()<<std::endl;
+      std::cout<<"Shower dEdx: size: "<<ShowerdEdx.size()<<" Plane 0: "<<ShowerdEdx.at(0)<<" Plane 1: "<<ShowerdEdx.at(1)<<" Plane 2: "<<ShowerdEdx.at(2)<<std::endl;
+      std::cout<<"Shower Energy: size: "<<ShowerEnergy.size()<<" Plane 0: "<<ShowerEnergy.at(0)<<" Plane 1: "<<ShowerEnergy.at(1)<<" Plane 2: "<<ShowerEnergy.at(2)<<std::endl;
+      std::cout<<"Shower Best Plane: "<<BestPlane<<std::endl;
+      std::cout<<"Shower Length: " << ShowerLength << std::endl;
+      std::cout<<"Shower Opening Angle: " << ShowerOpeningAngle << std::endl;
 
       //Print what has been created in the shower
-      showerEleHolder.PrintElements();
+      selement_holder.PrintElements();
     }
 
     //Make the shower
-    recob::Shower shower = recob::Shower(ShowerDirection, ShowerDirectionErr, ShowerStartPosition, ShowerDirectionErr,
-        ShowerEnergy, ShowerEnergyErr, ShowerdEdx, ShowerdEdxErr, BestPlane, util::kBogusI, ShowerLength, ShowerOpeningAngle);
-    showerEleHolder.SetElement(shower,"shower");
+    recob::Shower shower = recob::Shower(ShowerDirection, ShowerDirectionErr,ShowerStartPosition, ShowerDirectionErr,ShowerEnergy,ShowerEnergyErr,ShowerdEdx, ShowerdEdxErr, BestPlane,util::kBogusI, ShowerLength, ShowerOpeningAngle);
+    selement_holder.SetElement(shower,"shower");
     ++shower_iter;
-    art::Ptr<recob::Shower> ShowerPtr = this->GetProducedElementPtr<recob::Shower>("shower",showerEleHolder);
+    art::Ptr<recob::Shower> ShowerPtr = this->GetProducedElementPtr<recob::Shower>("shower",selement_holder);
 
     //Associate the pfparticle
     uniqueproducerPtrs.AddSingle<art::Assns<recob::Shower, recob::PFParticle>>(ShowerPtr,pfp,"pfShowerAssociationsbase");
+
+    //Get the associated hits,clusters and spacepoints
+    std::vector<art::Ptr<recob::Cluster> >    showerClusters    = fmcp.at(pfp.key());
+    std::vector<art::Ptr<recob::SpacePoint> > showerSpacePoints = fmspp.at(pfp.key());
 
     //Add the hits for each "cluster"
     for(auto const& cluster: showerClusters){
@@ -441,23 +394,21 @@ void reco::shower::LArPandoraModularShowerCreation::produce(art::Event& evt) {
     }
 
     //Loop over the tool data products and add them.
-    uniqueproducerPtrs.AddDataProducts(showerEleHolder);
+    uniqueproducerPtrs.AddDataProducts(selement_holder);
 
     //AddAssociations
     int assn_err = 0;
     for(auto const& fShowerTool: fShowerTools){
       //AddAssociations
-      assn_err += fShowerTool->AddAssociations(pfp, evt,showerEleHolder);
+      assn_err += fShowerTool->AddAssociations(pfp, evt,selement_holder);
     }
     if(!fAllowPartialShowers && assn_err > 0){
-      if (fVerbose)
-        mf::LogError("LArPandoraModularShowerCreation")
-          << "A association failed and not allowing partial showers. The shower will not be added to the event " << std::endl;
+      mf::LogError("LArPandoraModularShower") << "A association failed and you are not allowing partial showers. The event will not be added to the event " << std::endl;
       continue;
     }
 
     //Reset the showerproperty holder.
-    showerEleHolder.ClearShower();
+    selement_holder.ClearShower();
   }
 
   //Put everything in the event.
@@ -465,6 +416,7 @@ void reco::shower::LArPandoraModularShowerCreation::produce(art::Event& evt) {
 
   //Reset the ptrs to the data products
   uniqueproducerPtrs.reset();
+
 }
 
-DEFINE_ART_MODULE(reco::shower::LArPandoraModularShowerCreation)
+DEFINE_ART_MODULE(reco::shower::LArPandoraModularShower)

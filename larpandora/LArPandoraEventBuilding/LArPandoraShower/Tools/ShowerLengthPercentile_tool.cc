@@ -38,24 +38,22 @@ namespace ShowerRecoTools {
 
       float fPercentile;
 
-      art::InputTag fPFParticleLabel;
-      int           fVerbose;
-      std::string   fShowerStartPositionInputLabel;
-      std::string   fShowerDirectionInputLabel;
-      std::string   fShowerLengthOutputLabel;
-      std::string   fShowerOpeningAngleOutputLabel;
+      art::InputTag fPFParticleModuleLabel;
+      std::string fShowerStartPositionInputLabel;
+      std::string fShowerDirectionInputLabel;
+      std::string fShowerLengthOuputLabel;
+      std::string fShowerOpeningAngleOuputLabel;
   };
 
 
   ShowerLengthPercentile::ShowerLengthPercentile(const fhicl::ParameterSet& pset) :
     IShowerTool(pset.get<fhicl::ParameterSet>("BaseTools")),
     fPercentile(pset.get<float>("Percentile")),
-    fPFParticleLabel(pset.get<art::InputTag>("PFParticleLabel")),
-    fVerbose(pset.get<int>("Verbose")),
+    fPFParticleModuleLabel(pset.get<art::InputTag>("PFParticleModuleLabel")),
     fShowerStartPositionInputLabel(pset.get<std::string>("ShowerStartPositionInputLabel")),
     fShowerDirectionInputLabel(pset.get<std::string>("ShowerDirectionInputLabel")),
-    fShowerLengthOutputLabel(pset.get<std::string>("ShowerLengthOutputLabel")),
-    fShowerOpeningAngleOutputLabel(pset.get<std::string>("ShowerOpeningAngleOutputLabel"))
+    fShowerLengthOuputLabel(pset.get<std::string>("ShowerLengthOuputLabel")),
+    fShowerOpeningAngleOuputLabel(pset.get<std::string>("ShowerOpeningAngleOuputLabel"))
   {
   }
 
@@ -64,8 +62,7 @@ namespace ShowerRecoTools {
 
     //Get the start position
     if(!ShowerEleHolder.CheckElement(fShowerStartPositionInputLabel)){
-      if (fVerbose)
-        mf::LogError("ShowerLengthPercentile") << "Start position not set, returning "<< std::endl;
+      mf::LogError("ShowerSlidingStandardCalodEdx") << "Start position not set, returning "<< std::endl;
       return 1;
     }
     //Only consider hits in the same tpcs as the vertex.
@@ -74,38 +71,31 @@ namespace ShowerRecoTools {
 
     // Get the assocated pfParicle Handle
     art::Handle<std::vector<recob::PFParticle> > pfpHandle;
-    if (!Event.getByLabel(fPFParticleLabel, pfpHandle)){
-      throw cet::exception("ShowerLengthPercentile") << "Could not get the pandora pf particles. Something is not cofingured correctly Please give the correct pandoa module label. Stopping";
+    if (!Event.getByLabel(fPFParticleModuleLabel, pfpHandle)){
+      throw cet::exception("ShowerResidualTrackHitFinder") << "Could not get the pandora pf particles. Something is not cofingured correctly Please give the correct pandoa module label. Stopping";
       return 1;
     }
 
     // Get the spacepoint - PFParticle assn
     art::FindManyP<recob::SpacePoint>& fmspp = ShowerEleHolder.GetFindManyP<recob::SpacePoint>(
-        pfpHandle, Event, fPFParticleLabel);
+        pfpHandle, Event, fPFParticleModuleLabel);
     if (!fmspp.isValid()){
-      throw cet::exception("ShowerLengthPercentile") << "Trying to get the spacepoint and failed. Something is not configured correctly. Stopping ";
+      throw cet::exception("ShowerResidualTrackHitFinder") << "Trying to get the spacepoint and failed. Something is not configured correctly. Stopping ";
       return 1;
     }
 
     // Get the spacepoints
     art::Handle<std::vector<recob::SpacePoint> > spHandle;
-    if (!Event.getByLabel(fPFParticleLabel, spHandle)){
-      throw cet::exception("ShowerLengthPercentile") << "Could not configure the spacepoint handle. Something is configured incorrectly. Stopping";
+    if (!Event.getByLabel(fPFParticleModuleLabel, spHandle)){
+      throw cet::exception("ShowerResidualTrackHitFinder") << "Could not configure the spacepoint handle. Something is configured incorrectly. Stopping";
       return 1;
     }
 
     // Get the SpacePoints
     std::vector<art::Ptr<recob::SpacePoint> > spacePoints = fmspp.at(pfparticle.key());
-    if (!spacePoints.size()){
-      if (fVerbose)
-        mf::LogError("ShowerLengthPercentile") << "No Spacepoints, returning" <<std::endl;
-      return 1;
-    }
-
 
     if(!ShowerEleHolder.CheckElement(fShowerDirectionInputLabel)){
-      if (fVerbose)
-        mf::LogError("ShowerLengthPercentile") << "Direction not set, returning "<< std::endl;
+      mf::LogError("ShowerResidualTrackHitFinder") << "Direction not set, returning "<< std::endl;
       return 1;
     }
 
@@ -142,8 +132,8 @@ namespace ShowerRecoTools {
     double ShowerAngleError = -9999; //TODO: Do properly
 
     // Fill the shower element holder
-    ShowerEleHolder.SetElement(ShowerLength, ShowerLengthError, fShowerLengthOutputLabel);
-    ShowerEleHolder.SetElement(ShowerAngle, ShowerAngleError, fShowerOpeningAngleOutputLabel);
+    ShowerEleHolder.SetElement(ShowerLength, ShowerLengthError, fShowerLengthOuputLabel);
+    ShowerEleHolder.SetElement(ShowerAngle, ShowerAngleError, fShowerOpeningAngleOuputLabel);
 
     return 0;
   }

@@ -62,9 +62,8 @@ namespace ShowerRecoTools{
       //Defined as the perpendicualar
       //distance from the best fit line.
       bool                       fApplyChargeWeight;  //Apply charge weighting to the fit.
-      art::InputTag              fPFParticleLabel;
-      int                        fVerbose;
-      art::InputTag              fHitLabel;
+      art::InputTag              fPFParticleModuleLabel;
+      art::InputTag              fHitsModuleLabel;
       std::string                fShowerStartPositionInputLabel;
       std::string                fShowerDirectionInputLabel;
       std::string                fInitialTrackHitsOutputLabel;
@@ -79,9 +78,8 @@ namespace ShowerRecoTools{
     fNfithits(pset.get<std::vector<unsigned int> >("Nfithits")),
     fToler(pset.get<std::vector<double> >("Toler")),
     fApplyChargeWeight(pset.get<bool>("ApplyChargeWeight")),
-    fPFParticleLabel(pset.get<art::InputTag>("PFParticleLabel")),
-    fVerbose(pset.get<int>("Verbose")),
-    fHitLabel(pset.get<art::InputTag>("HitsModuleLabel")),
+    fPFParticleModuleLabel(pset.get<art::InputTag>("PFParticleModuleLabel")),
+    fHitsModuleLabel(pset.get<art::InputTag>("HitsModuleLabel")),
     fShowerStartPositionInputLabel(pset.get<std::string>("ShowerStartPositionInputLabel")),
     fShowerDirectionInputLabel(pset.get<std::string>("ShowerDirectionInputLabel")),
     fInitialTrackHitsOutputLabel(pset.get<std::string>("InitialTrackHitsOutputLabel")),
@@ -103,15 +101,13 @@ namespace ShowerRecoTools{
 
     //This is all based on the shower vertex being known. If it is not lets not do the track
     if(!ShowerEleHolder.CheckElement(fShowerStartPositionInputLabel)){
-      if (fVerbose)
-        mf::LogError("Shower2DLinearRegressionTrackHitFinder")
-          << "Start position not set, returning "<< std::endl;
+      mf::LogError("Shower2DLinearRegressionTrackHitFinder")
+        << "Start position not set, returning "<< std::endl;
       return 1;
     }
     if(!ShowerEleHolder.CheckElement(fShowerDirectionInputLabel)){
-      if (fVerbose)
-        mf::LogError("Shower2DLinearRegressionTrackHitFinder")
-          << "Direction not set, returning "<< std::endl;
+      mf::LogError("Shower2DLinearRegressionTrackHitFinder")
+        << "Direction not set, returning "<< std::endl;
       return 1;
     }
 
@@ -123,7 +119,7 @@ namespace ShowerRecoTools{
 
     // Get the assocated pfParicle vertex PFParticles
     art::Handle<std::vector<recob::PFParticle> > pfpHandle;
-    if (!Event.getByLabel(fPFParticleLabel, pfpHandle)){
+    if (!Event.getByLabel(fPFParticleModuleLabel, pfpHandle)){
       throw cet::exception("Shower2DLinearRegressionTrackHitFinder")
         << "Could not get the pandora pf particles. Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
       return 1;
@@ -131,26 +127,25 @@ namespace ShowerRecoTools{
 
     //Get the clusters
     art::Handle<std::vector<recob::Cluster> > clusHandle;
-    if (!Event.getByLabel(fPFParticleLabel, clusHandle)){
+    if (!Event.getByLabel(fPFParticleModuleLabel, clusHandle)){
       throw cet::exception("Shower2DLinearRegressionTrackHitFinder")
         << "Could not get the pandora clusters. Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
       return 1;
     }
 
     art::FindManyP<recob::Cluster>& fmc = ShowerEleHolder.GetFindManyP<recob::Cluster>
-      (pfpHandle, Event, fPFParticleLabel);
+      (pfpHandle, Event, fPFParticleModuleLabel);
     std::vector<art::Ptr<recob::Cluster> > clusters = fmc.at(pfparticle.key());
 
     if(clusters.size()<2){
-      if (fVerbose)
-        mf::LogError("Shower2DLinearRegressionTrackHitFinder")
-          << "Not enough clusters: "<<clusters.size() << std::endl;
+      mf::LogError("Shower2DLinearRegressionTrackHitFinder")
+        << "Not enough clusters: "<<clusters.size() << std::endl;
       return 1;
     }
 
     //Get the hit association
     art::FindManyP<recob::Hit> fmhc = ShowerEleHolder.GetFindManyP<recob::Hit>
-      (clusHandle, Event, fPFParticleLabel);
+      (clusHandle, Event, fPFParticleModuleLabel);
     std::map<geo::PlaneID, std::vector<art::Ptr<recob::Hit> > > plane_clusters;
     //Loop over the clusters in the plane and get the hits
     for(auto const& cluster: clusters){
@@ -191,7 +186,7 @@ namespace ShowerRecoTools{
     //Get the associated spacepoints
     //Get the hits
     art::Handle<std::vector<recob::Hit> > hitHandle;
-    if (!Event.getByLabel(fHitLabel, hitHandle)){
+    if (!Event.getByLabel(fHitsModuleLabel, hitHandle)){
       throw cet::exception("Shower2DLinearRegressionTrackHitFinder")
         << "Could not get the hits." << std::endl;
       return 1;
@@ -199,7 +194,7 @@ namespace ShowerRecoTools{
 
     //get the sp<->hit association
     art::FindManyP<recob::SpacePoint> fmsp = ShowerEleHolder.GetFindManyP<recob::SpacePoint>
-      (hitHandle,Event,fPFParticleLabel);
+      (hitHandle,Event,fPFParticleModuleLabel);
     if(!fmsp.isValid()){
       throw cet::exception("Shower2DLinearRegressionTrackHitFinder")
         << "Spacepoint and hit association not valid. Stopping." << std::endl;

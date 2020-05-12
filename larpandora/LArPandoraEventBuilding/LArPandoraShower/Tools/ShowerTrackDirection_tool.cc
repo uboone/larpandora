@@ -47,7 +47,6 @@ namespace ShowerRecoTools {
     private:
 
       //fcl
-      int  fVerbose;
       bool fUsePandoraVertex; //Direction from point defined as
       //(Position of traj point - Vertex) rather than
       //(Position of traj point - Track Start Point).
@@ -60,7 +59,6 @@ namespace ShowerRecoTools {
 
   ShowerTrackDirection::ShowerTrackDirection(const fhicl::ParameterSet& pset)
     :IShowerTool(pset.get<fhicl::ParameterSet>("BaseTools")),
-    fVerbose(pset.get<int>("Verbose")),
     fUsePandoraVertex(pset.get<bool>("UsePandoraVertex")),
     fUsePositionInfo(pset.get<bool>("UsePositionInfo"))
   {
@@ -76,15 +74,13 @@ namespace ShowerRecoTools {
 
     //Check the Track has been defined
     if(!ShowerEleHolder.CheckElement("InitialTrack")){
-      if (fVerbose)
-        mf::LogError("ShowerTrackDirection") << "Initial track not set"<< std::endl;
+      mf::LogError("ShowerTrackDirection") << "Initial track not set"<< std::endl;
       return 0;
     }
 
     //Check the start position is set.
     if(fUsePandoraVertex && !ShowerEleHolder.CheckElement("ShowerStartPosition")){
-      if (fVerbose)
-        mf::LogError("ShowerTrackDirection") << "Start position not set, returning "<< std::endl;
+      mf::LogError("ShowerTrackDirection") << "Start position not set, returning "<< std::endl;
       return 0;
     }
 
@@ -172,8 +168,7 @@ namespace ShowerRecoTools {
         ShowerEleHolder.SetElement(Direction,DirectionErr,"ShowerDirection");
       }
       else{
-        if (fVerbose)
-          mf::LogError("ShowerTrackDirection") << "None of the points are within 1 sigma"<< std::endl;
+        mf::LogError("ShowerTrackDirection") << "None of the points are within 1 sigma"<< std::endl;
         return 1;
       }
 
@@ -243,8 +238,7 @@ namespace ShowerRecoTools {
         ShowerEleHolder.SetElement(Direction,DirectionErr,"ShowerDirection");
       }
       else{
-        if (fVerbose)
-          mf::LogError("ShowerTrackDirection") << "None of the points are within 1 sigma"<< std::endl;
+        mf::LogError("ShowerTrackDirection") << "None of the points are within 1 sigma"<< std::endl;
         return 1;
       }
 

@@ -59,9 +59,8 @@ namespace ShowerRecoTools {
       detinfo::DetectorProperties const* fDetProp;
 
       //fcl
-      art::InputTag fPFParticleLabel;
+      art::InputTag fPFParticleModuleLabel;
       art::InputTag fHitModuleLabel;
-      int            fVerbose;
       bool          fChargeWeighted;  //Should we charge weight the PCA.
       unsigned int  fMinPCAPoints;    //Number of spacepoints needed to do the analysis.
 
@@ -75,9 +74,8 @@ namespace ShowerRecoTools {
   ShowerTrackPCADirection::ShowerTrackPCADirection(const fhicl::ParameterSet& pset)
     :     IShowerTool(pset.get<fhicl::ParameterSet>("BaseTools")),
     fDetProp(lar::providerFrom<detinfo::DetectorPropertiesService>()),
-    fPFParticleLabel(pset.get<art::InputTag>("PFParticleLabel")),
+    fPFParticleModuleLabel(pset.get<art::InputTag>("PFParticleModuleLabel","")),
     fHitModuleLabel(pset.get<art::InputTag>("HitModuleLabel")),
-    fVerbose(pset.get<int>                 ("Verbose")),
     fChargeWeighted(pset.get<bool>         ("ChargeWeighted")),
     fMinPCAPoints (pset.get<unsigned int> ("MinPCAPoints")),
     fShowerStartPositionInputLabel(pset.get<std::string>("ShowerStartPositionInputLabel")),
@@ -95,24 +93,22 @@ namespace ShowerRecoTools {
       reco::shower::ShowerElementHolder& ShowerEleHolder){
 
     if(!ShowerEleHolder.CheckElement(fShowerStartPositionInputLabel)){
-      if (fVerbose)
-        mf::LogError("ShowerTrackPCA") << "Start Position not set. Stopping" << std::endl;;
+      mf::LogError("ShowerTrackPCA") << "Start Position not set. Stopping" << std::endl;;
       return 1;
     }
     if(!ShowerEleHolder.CheckElement(fInitialTrackSpacePointsInputLabel)){
-      if (fVerbose)
-        mf::LogError("ShowerTrackPCA") << "TrackSpacePoints not set, returning "<< std::endl;
+      mf::LogError("ShowerTrackPCA") << "TrackSpacePoints not set, returning "<< std::endl;
       return 1;
     }
 
     //Get the spacepoints handle and the hit assoication
     art::Handle<std::vector<recob::SpacePoint> > spHandle;
-    if (!Event.getByLabel(fPFParticleLabel, spHandle)){
+    if (!Event.getByLabel(fPFParticleModuleLabel, spHandle)){
       throw cet::exception("ShowerTrackPCA") << "Could not configure the spacepoint handle. Something is configured incorrectly. Stopping";
       return 1;
     }
     art::FindManyP<recob::Hit>& fmh = ShowerEleHolder.GetFindManyP<recob::Hit>(
-        spHandle, Event, fPFParticleLabel);
+        spHandle, Event, fPFParticleModuleLabel);
     if(!fmh.isValid()){
       throw cet::exception("ShowerTrackPCA") << "Spacepoint and hit association not valid. Stopping.";
       return 1;
@@ -124,8 +120,7 @@ namespace ShowerRecoTools {
 
     //We cannot progress with no spacepoints.
     if(trackSpacePoints.size() < fMinPCAPoints){
-      if (fVerbose)
-        mf::LogError("ShowerTrackPCA") << "Not enough spacepoints for PCA, returning "<< std::endl;
+      mf::LogError("ShowerTrackPCA") << "Not enough spacepoints for PCA, returning "<< std::endl;
       return 1;
     }
 

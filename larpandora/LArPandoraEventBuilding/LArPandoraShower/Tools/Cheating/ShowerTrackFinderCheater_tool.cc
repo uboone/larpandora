@@ -55,7 +55,7 @@ namespace ShowerRecoTools {
 
       //fcl
       bool fDebugEVD;
-      art::InputTag fPFParticleLabel;
+      art::InputTag fPFParticleModuleLabel;
       art::InputTag fHitModuleLabel;
 
       std::string fTrueParticleIntputLabel;
@@ -70,7 +70,7 @@ namespace ShowerRecoTools {
     IShowerTool(pset.get<fhicl::ParameterSet>("BaseTools")),
     fLArPandoraShowerCheatingAlg(pset.get<fhicl::ParameterSet>("LArPandoraShowerCheatingAlg")),
     fDebugEVD(pset.get<bool>("DebugEVD")),
-    fPFParticleLabel(pset.get<art::InputTag>("PFParticleLabel")),
+    fPFParticleModuleLabel(pset.get<art::InputTag>("PFParticleModuleLabel","")),
     fHitModuleLabel(pset.get<art::InputTag>("HitModuleLabel")),
     fTrueParticleIntputLabel(pset.get<std::string>("TrueParticleIntputLabel")),
     fShowerStartPositionInputTag(pset.get<std::string>("ShowerStartPositionInputTag")),
@@ -92,7 +92,7 @@ namespace ShowerRecoTools {
 
     //Get the hits from the shower:
     art::Handle<std::vector<recob::PFParticle> > pfpHandle;
-    if (!Event.getByLabel(fPFParticleLabel, pfpHandle)){
+    if (!Event.getByLabel(fPFParticleModuleLabel, pfpHandle)){
       throw cet::exception("ShowerTrackFinderCheater") << "Could not get the pandora pf particles. Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
       return 1;
     }
@@ -108,15 +108,15 @@ namespace ShowerRecoTools {
 
       //Get the clusters
       art::Handle<std::vector<recob::Cluster> > clusHandle;
-      if (!Event.getByLabel(fPFParticleLabel, clusHandle)){
+      if (!Event.getByLabel(fPFParticleModuleLabel, clusHandle)){
         throw cet::exception("ShowerTrackFinderCheater") << "Could not get the pandora clusters. Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
         return 1;
       }
-      art::FindManyP<recob::Cluster> fmc(pfpHandle, Event, fPFParticleLabel);
+      art::FindManyP<recob::Cluster> fmc(pfpHandle, Event, fPFParticleModuleLabel);
       std::vector<art::Ptr<recob::Cluster> > clusters = fmc.at(pfparticle.key());
 
       //Get the hit association
-      art::FindManyP<recob::Hit> fmhc(clusHandle, Event, fPFParticleLabel);
+      art::FindManyP<recob::Hit> fmhc(clusHandle, Event, fPFParticleModuleLabel);
 
       std::vector<art::Ptr<recob::Hit> > showerHits;
       for(auto const& cluster: clusters){
@@ -159,7 +159,7 @@ namespace ShowerRecoTools {
     }
 
     // Get the hits associated with the space points
-    art::FindManyP<recob::SpacePoint> fmsph(hitHandle, Event, fPFParticleLabel);
+    art::FindManyP<recob::SpacePoint> fmsph(hitHandle, Event, fPFParticleModuleLabel);
     if(!fmsph.isValid()){
       throw cet::exception("ShowerTrackFinderCheater") << "Spacepoint and hit association not valid. Stopping.";
       return 1;

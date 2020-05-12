@@ -47,7 +47,6 @@ namespace ShowerRecoTools {
     private:
 
       //fcl
-      int  fVerbose;
       bool fUsePandoraVertex; //Direction from point defined as
       //(Position of SP - Vertex) rather than
       //(Position of SP - Track Start Point).
@@ -62,7 +61,6 @@ namespace ShowerRecoTools {
 
   ShowerTrackSpacePointDirection::ShowerTrackSpacePointDirection(const fhicl::ParameterSet& pset)
     :IShowerTool(pset.get<fhicl::ParameterSet>("BaseTools")),
-    fVerbose(pset.get<int>("Verbose")),
     fUsePandoraVertex(pset.get<bool>("UsePandoraVertex")),
     fInitialTrackSpacePointsInputLabel(pset.get<std::string>("InitialTrackSpacePointsInputLabel")),
     fShowerStartPositionInputLabel(pset.get<std::string>("ShowerStartPositionInputLabel")),
@@ -81,16 +79,14 @@ namespace ShowerRecoTools {
 
     //Check the Track Hits has been defined
     if(!ShowerEleHolder.CheckElement(fInitialTrackSpacePointsInputLabel)){
-      if (fVerbose)
-        mf::LogError("ShowerTrackSpacePointDirection") << "Initial track spacepoints not set"<< std::endl;
+      mf::LogError("ShowerTrackSpacePointDirection") << "Initial track spacepoints not set"<< std::endl;
       return 0;
     }
 
     //Check the start position is set.
     if(fUsePandoraVertex && !ShowerEleHolder.CheckElement(fShowerStartPositionInputLabel)){
-      if (fVerbose)
-        mf::LogError("ShowerTrackSpacePointDirection")
-          << "Start position not set, returning "<< std::endl;
+      mf::LogError("ShowerTrackSpacePointDirection")
+        << "Start position not set, returning "<< std::endl;
       return 0;
     }
 
@@ -102,9 +98,8 @@ namespace ShowerRecoTools {
     else{
       //Check the Tracks has been defined
       if(!ShowerEleHolder.CheckElement(fInitialTrackInputLabel)){
-        if (fVerbose)
-          mf::LogError("ShowerTrackSpacePointDirection")
-            << "Initial track not set"<< std::endl;
+        mf::LogError("ShowerTrackSpacePointDirection")
+          << "Initial track not set"<< std::endl;
         return 0;
       }
       recob::Track InitialTrack;
@@ -172,9 +167,8 @@ namespace ShowerRecoTools {
       ShowerEleHolder.SetElement(Direction,fShowerDirectionOutputLabel);
     }
     else{
-      if (fVerbose)
-        mf::LogError("ShowerTrackSpacePointDirection")
-          << "None of the points are within 1 sigma"<< std::endl;
+      mf::LogError("ShowerTrackSpacePointDirection")
+        << "None of the points are within 1 sigma"<< std::endl;
       return 1;
     }
     return 0;

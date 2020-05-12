@@ -60,7 +60,7 @@ namespace ShowerRecoTools {
       art::ServiceHandle<art::TFileService> tfs;
 
       //fcl
-      art::InputTag fPFParticleLabel;
+      art::InputTag fPFParticleModuleLabel;
       float fNSegments; //Number of segement to split the shower into the perforam the RMSFlip.
       bool fRMSFlip;    //Flip the direction by considering the rms.
       bool fVertexFlip; //Flip the direction by considering the vertex position relative to the center position.
@@ -72,7 +72,7 @@ namespace ShowerRecoTools {
 
       std::string fShowerStartPositionInputLabel;
       std::string fTrueParticleInputLabel;
-      std::string fShowerDirectionOutputLabel;
+      std::string fShowerDirectionOuputLabel;
 
   };
 
@@ -80,13 +80,13 @@ namespace ShowerRecoTools {
   ShowerDirectionCheater::ShowerDirectionCheater(const fhicl::ParameterSet& pset) :
     IShowerTool(pset.get<fhicl::ParameterSet>("BaseTools")),
     fLArPandoraShowerCheatingAlg(pset.get<fhicl::ParameterSet>("LArPandoraShowerCheatingAlg")),
-    fPFParticleLabel(pset.get<art::InputTag>("PFParticleLabel")),
+    fPFParticleModuleLabel(pset.get<art::InputTag>("PFParticleModuleLabel","")),
     fNSegments(pset.get<float>("NSegments")),
     fRMSFlip(pset.get<bool>("RMSFlip")),
     fVertexFlip(pset.get<bool>("VertexFlip")),
     fShowerStartPositionInputLabel(pset.get<std::string>("ShowerStartPositionInputLabel")),
     fTrueParticleInputLabel(pset.get<std::string>("TrueParticleInputLabel")),
-    fShowerDirectionOutputLabel(pset.get<std::string>("ShowerDirectionOutputLabel"))
+    fShowerDirectionOuputLabel(pset.get<std::string>("ShowerDirectionOuputLabel"))
   {
     if (vertexDotProduct||rmsGradient){
       Tree = tfs->make<TTree>("DebugTreeDirCheater", "DebugTree from shower direction cheater");
@@ -108,7 +108,7 @@ namespace ShowerRecoTools {
 
     //Get the hits from the shower:
     art::Handle<std::vector<recob::PFParticle> > pfpHandle;
-    if (!Event.getByLabel(fPFParticleLabel, pfpHandle)){
+    if (!Event.getByLabel(fPFParticleModuleLabel, pfpHandle)){
       throw cet::exception("ShowerDirectionCheater")
         << "Could not get the pandora pf particles. Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
       return 1;
@@ -124,16 +124,16 @@ namespace ShowerRecoTools {
 
       //Get the clusters
       art::Handle<std::vector<recob::Cluster> > clusHandle;
-      if (!Event.getByLabel(fPFParticleLabel, clusHandle)){
+      if (!Event.getByLabel(fPFParticleModuleLabel, clusHandle)){
         throw cet::exception("ShowerDirectionCheater")
           << "Could not get the pandora clusters. Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
         return 1;
       }
-      art::FindManyP<recob::Cluster> fmc(pfpHandle, Event, fPFParticleLabel);
+      art::FindManyP<recob::Cluster> fmc(pfpHandle, Event, fPFParticleModuleLabel);
       std::vector<art::Ptr<recob::Cluster> > clusters = fmc.at(pfparticle.key());
 
       //Get the hit association
-      art::FindManyP<recob::Hit> fmhc(clusHandle, Event, fPFParticleLabel);
+      art::FindManyP<recob::Hit> fmhc(clusHandle, Event, fPFParticleModuleLabel);
 
       std::vector<art::Ptr<recob::Hit> > showerHits;
       for(auto const& cluster: clusters){
@@ -156,11 +156,11 @@ namespace ShowerRecoTools {
     trueDir = trueDir.Unit(); // TODO: Can probably remove?
 
     TVector3 trueDirErr = {-999,-999,-999};
-    ShowerEleHolder.SetElement(trueDir,trueDirErr,fShowerDirectionOutputLabel);
+    ShowerEleHolder.SetElement(trueDir,trueDirErr,fShowerDirectionOuputLabel);
 
     if (fRMSFlip || fVertexFlip){
       //Get the SpacePoints and hits
-      art::FindManyP<recob::SpacePoint> fmspp(pfpHandle, Event, fPFParticleLabel);
+      art::FindManyP<recob::SpacePoint> fmspp(pfpHandle, Event, fPFParticleModuleLabel);
 
       if (!fmspp.isValid()){
         throw cet::exception("ShowerDirectionCheater") << "Trying to get the spacepoint and failed. Something is not configured correctly. Stopping ";
@@ -168,11 +168,11 @@ namespace ShowerRecoTools {
       }
 
       art::Handle<std::vector<recob::SpacePoint> > spHandle;
-      if (!Event.getByLabel(fPFParticleLabel, spHandle)){
+      if (!Event.getByLabel(fPFParticleModuleLabel, spHandle)){
         throw cet::exception("ShowerDirectionCheater") << "Could not configure the spacepoint handle. Something is configured incorrectly. Stopping";
         return 1;
       }
-      art::FindManyP<recob::Hit> fmh(spHandle, Event, fPFParticleLabel);
+      art::FindManyP<recob::Hit> fmh(spHandle, Event, fPFParticleModuleLabel);
       if(!fmh.isValid()){
         throw cet::exception("ShowerDirectionCheater") << "Spacepoint and hit association not valid. Stopping.";
         return 1;

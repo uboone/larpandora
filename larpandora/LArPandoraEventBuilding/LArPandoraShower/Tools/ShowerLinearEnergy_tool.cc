@@ -54,8 +54,7 @@ namespace ShowerRecoTools {
       std::vector<double> fGradients;   //Gradient of the linear fit of total charge to total energy
       std::vector<double> fIntercepts;  //Intercept of the linear fit of total charge to total energy
 
-      art::InputTag fPFParticleLabel;
-      int           fVerbose;
+      art::InputTag fPFParticleModuleLabel;
 
       std::string fShowerEnergyOutputLabel;
       std::string fShowerBestPlaneOutputLabel;
@@ -70,8 +69,7 @@ namespace ShowerRecoTools {
     IShowerTool(pset.get<fhicl::ParameterSet>("BaseTools")),
     fGradients(pset.get<std::vector<double> >("Gradients")),
     fIntercepts(pset.get<std::vector<double> >("Intercepts")),
-    fPFParticleLabel(pset.get<art::InputTag>("PFParticleLabel")),
-    fVerbose(pset.get<int>("Verbose")),
+    fPFParticleModuleLabel(pset.get<art::InputTag>("PFParticleModuleLabel","")),
     fShowerEnergyOutputLabel(pset.get<std::string>("ShowerEnergyOutputLabel")),
     fShowerBestPlaneOutputLabel(pset.get<std::string>("ShowerBestPlaneOutputLabel")),
     detprop(lar::providerFrom<detinfo::DetectorPropertiesService>())
@@ -95,26 +93,26 @@ namespace ShowerRecoTools {
 
     // Get the assocated pfParicle vertex PFParticles
     art::Handle<std::vector<recob::PFParticle> > pfpHandle;
-    if (!Event.getByLabel(fPFParticleLabel, pfpHandle)){
+    if (!Event.getByLabel(fPFParticleModuleLabel, pfpHandle)){
       throw cet::exception("ShowerLinearEnergy") << "Could not get the pandora pf particles. Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
       return 1;
     }
 
     //Get the clusters
     art::Handle<std::vector<recob::Cluster> > clusHandle;
-    if (!Event.getByLabel(fPFParticleLabel, clusHandle)){
+    if (!Event.getByLabel(fPFParticleModuleLabel, clusHandle)){
       throw cet::exception("ShowerLinearEnergy") << "Could not get the pandora clusters. Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
       return 1;
     }
     art::FindManyP<recob::Cluster>& fmc = ShowerEleHolder.GetFindManyP<recob::Cluster>(
-        pfpHandle, Event, fPFParticleLabel);
-    // art::FindManyP<recob::Cluster> fmc(pfpHandle, Event, fPFParticleLabel);
+        pfpHandle, Event, fPFParticleModuleLabel);
+    // art::FindManyP<recob::Cluster> fmc(pfpHandle, Event, fPFParticleModuleLabel);
     std::vector<art::Ptr<recob::Cluster> > clusters = fmc.at(pfparticle.key());
 
     //Get the hit association
     art::FindManyP<recob::Hit>& fmhc = ShowerEleHolder.GetFindManyP<recob::Hit>(
-        clusHandle, Event, fPFParticleLabel);
-    // art::FindManyP<recob::Hit> fmhc(clusHandle, Event, fPFParticleLabel);
+        clusHandle, Event, fPFParticleModuleLabel);
+    // art::FindManyP<recob::Hit> fmhc(clusHandle, Event, fPFParticleModuleLabel);
 
     std::map<unsigned int, std::vector<art::Ptr<recob::Hit> > > planeHits;
 

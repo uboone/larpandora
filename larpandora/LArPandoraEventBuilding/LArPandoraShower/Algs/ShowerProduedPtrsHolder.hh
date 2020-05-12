@@ -14,7 +14,7 @@
 //Framework includes
 #include "messagefacility/MessageLogger/MessageLogger.h"
 #include "art/Framework/Principal/Event.h"
-#include "larpandora/LArPandoraEventBuilding/LArPandoraShower/Algs/ShowerElementHolder.hh"
+#include "larreco/RecoAlg/ShowerElementHolder.hh"
 
 //C++ Includes
 #include <iostream>

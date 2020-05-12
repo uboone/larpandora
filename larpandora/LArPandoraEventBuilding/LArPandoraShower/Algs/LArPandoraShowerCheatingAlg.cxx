@@ -1,13 +1,13 @@
 #include "larpandora/LArPandoraEventBuilding/LArPandoraShower/Algs/LArPandoraShowerCheatingAlg.h"
 
 shower::LArPandoraShowerCheatingAlg::LArPandoraShowerCheatingAlg(const fhicl::ParameterSet& pset):
-  fLArPandoraShowerAlg(pset.get<fhicl::ParameterSet>("LArPandoraShowerAlg")),
-  fHitModuleLabel(pset.get<art::InputTag> ("HitModuleLabel")),
-  fPFParticleLabel(pset.get<art::InputTag> ("PFParticleLabel")),
-  fShowerStartPositionInputLabel(pset.get<std::string>("ShowerStartPositionInputLabel")),
-  fShowerDirectionInputLabel(pset.get<std::string>("ShowerDirectionInputLabel")),
-  fInitialTrackSpacePointsInputLabel(pset.get<std::string>("InitialTrackSpacePointsInputLabel"))
+  fLArPandoraShowerAlg(pset.get<fhicl::ParameterSet>("LArPandoraShowerAlg"))
 {
+  fPFParticleModuleLabel = pset.get<art::InputTag> ("PFParticleModuleLabel");
+  fHitModuleLabel        = pset.get<art::InputTag> ("HitModuleLabel");
+  fShowerStartPositionInputLabel = pset.get<std::string>("ShowerStartPositionInputLabel");
+  fShowerDirectionInputLabel     = pset.get<std::string>("ShowerDirectionInputLabel");
+  fInitialTrackSpacePointsInputLabel = pset.get<std::string>("InitialTrackSpacePointsInputLabel");
 }
 
 std::map<int,const simb::MCParticle*>  shower::LArPandoraShowerCheatingAlg::GetTrueParticleMap() const {
@@ -89,9 +89,9 @@ void shower::LArPandoraShowerCheatingAlg::CheatDebugEVD(const simb::MCParticle* 
 
 
   // Get the hits associated with the space points
-  art::FindManyP<recob::SpacePoint> fmsph(hitHandle, Event, fPFParticleLabel);
+  art::FindManyP<recob::SpacePoint> fmsph(hitHandle, Event, fPFParticleModuleLabel);
   if(!fmsph.isValid()){
-    throw cet::exception("LArPandoraShowerCheatingAlg") << "Spacepoint and hit association not valid. Stopping.";
+    throw cet::exception("ShowerTrackFinderCheater") << "Spacepoint and hit association not valid. Stopping.";
     return;
   }
 
@@ -112,15 +112,15 @@ void shower::LArPandoraShowerCheatingAlg::CheatDebugEVD(const simb::MCParticle* 
 
 
   if(!ShowerEleHolder.CheckElement(fShowerStartPositionInputLabel)){
-    mf::LogError("LArPandoraShowerCheatingAlg") << "Start position not set, returning "<< std::endl;
+    mf::LogError("Shower3DTrackFinder") << "Start position not set, returning "<< std::endl;
     return;
   }
   if(!ShowerEleHolder.CheckElement(fShowerDirectionInputLabel)){
-    mf::LogError("LArPandoraShowerCheatingAlg") << "Direction not set, returning "<< std::endl;
+    mf::LogError("Shower3DTrackFinder") << "Direction not set, returning "<< std::endl;
     return;
   }
   if(!ShowerEleHolder.CheckElement(fInitialTrackSpacePointsInputLabel)){
-    mf::LogError("LArPandoraShowerCheatingAlg") << "TrackSpacePoints not set, returning "<< std::endl;
+    mf::LogError("Shower3DTrackFinder") << "TrackSpacePoints not set, returning "<< std::endl;
     return;
   }
 

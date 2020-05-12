@@ -43,8 +43,7 @@ namespace ShowerRecoTools {
     private:
 
       //fcl parameters
-      art::InputTag fPFParticleLabel;
-      int           fVerbose;
+      art::InputTag fPFParticleModuleLabel;
       std::string   fShowerStartPositionOutputLabel;
       std::string   fShowerCentreInputLabel;
       std::string   fShowerDirectionInputLabel;
@@ -54,8 +53,7 @@ namespace ShowerRecoTools {
 
   ShowerPCAPropergationStartPosition::ShowerPCAPropergationStartPosition(const fhicl::ParameterSet& pset) :
     IShowerTool(pset.get<fhicl::ParameterSet>("BaseTools")),
-    fPFParticleLabel(pset.get<art::InputTag>("PFParticleLabel")),
-    fVerbose(pset.get<int>("Verbose")),
+    fPFParticleModuleLabel(pset.get<art::InputTag>("PFParticleModuleLabel","")),
     fShowerStartPositionOutputLabel(pset.get<std::string>("ShowerStartPositionOutputLabel")),
     fShowerCentreInputLabel(pset.get<std::string>("ShowerCentreInputLabel")),
     fShowerDirectionInputLabel(pset.get<std::string>("ShowerDirectionInputLabel")),
@@ -74,41 +72,39 @@ namespace ShowerRecoTools {
 
     //Get the start position and direction and center
     if(!ShowerEleHolder.CheckElement(fShowerStartPositionInputLabel)){
-      if (fVerbose)
-        mf::LogError("ShowerPCAPropergationStartPosition") << "Start position not set, returning "<< std::endl;
+      mf::LogError("ShowerPCAPropergationStartPosition") << "Start position not set, returning "<< std::endl;
       return 1;
     }
     if(!ShowerEleHolder.CheckElement(fShowerDirectionInputLabel)){
-      if (fVerbose)
-        mf::LogError("ShowerPCAPropergationStartPosition") << "Direction not set, returning "<< std::endl;
+      mf::LogError("ShowerPCAPropergationStartPosition") << "Direction not set, returning "<< std::endl;
       return 1;
     }
     if(!ShowerEleHolder.CheckElement(fShowerCentreInputLabel)){
 
       // Get the assocated pfParicle vertex PFParticles
       art::Handle<std::vector<recob::PFParticle> > pfpHandle;
-      if (!Event.getByLabel(fPFParticleLabel, pfpHandle)){
-        throw cet::exception("ShowerPCAPropergationStartPosition") << "Could not get the pandora pf particles. Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
+      if (!Event.getByLabel(fPFParticleModuleLabel, pfpHandle)){
+        throw cet::exception("ShowerPCADirection") << "Could not get the pandora pf particles. Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
         return 1;
       }
       art::FindManyP<recob::SpacePoint>& fmspp = ShowerEleHolder.GetFindManyP<recob::SpacePoint>(
-          pfpHandle, Event, fPFParticleLabel);
+          pfpHandle, Event, fPFParticleModuleLabel);
 
       if (!fmspp.isValid()){
-        throw cet::exception("ShowerPCAPropergationStartPosition") << "Trying to get the spacepoint and failed. Something is not configured correctly. Stopping ";
+        throw cet::exception("ShowerPCADirection") << "Trying to get the spacepoint and failed. Something is not configured correctly. Stopping ";
         return 1;
       }
 
       //Get the spacepoints handle and the hit assoication
       art::Handle<std::vector<recob::SpacePoint> > spHandle;
-      if (!Event.getByLabel(fPFParticleLabel, spHandle)){
-        throw cet::exception("ShowerPCAPropergationStartPosition") << "Could not configure the spacepoint handle. Something is configured incorrectly. Stopping";
+      if (!Event.getByLabel(fPFParticleModuleLabel, spHandle)){
+        throw cet::exception("ShowerPCADirection") << "Could not configure the spacepoint handle. Something is configured incorrectly. Stopping";
         return 1;
       }
       art::FindManyP<recob::Hit>& fmh = ShowerEleHolder.GetFindManyP<recob::Hit>(
-          spHandle, Event, fPFParticleLabel);
+          spHandle, Event, fPFParticleModuleLabel);
       if(!fmh.isValid()){
-        throw cet::exception("ShowerPCAPropergationStartPosition") << "Spacepoint and hit association not valid. Stopping.";
+        throw cet::exception("ShowerPCADirection") << "Spacepoint and hit association not valid. Stopping.";
         return 1;
       }
 

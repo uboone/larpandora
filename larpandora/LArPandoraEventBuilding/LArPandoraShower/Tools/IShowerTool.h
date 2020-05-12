@@ -15,8 +15,6 @@
 #include "art/Framework/Principal/Event.h"
 #include "art/Framework/Core/ProducesCollector.h"
 #include "art/Persistency/Common/PtrMaker.h"
-#include "cetlib_except/exception.h"
-#include "messagefacility/MessageLogger/MessageLogger.h"
 
 //LArSoft Includes
 #include "lardataobj/RecoBase/PFParticle.h"

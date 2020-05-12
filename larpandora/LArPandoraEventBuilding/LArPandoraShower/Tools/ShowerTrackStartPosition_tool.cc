@@ -39,7 +39,6 @@ namespace ShowerRecoTools {
 
     private:
 
-      int         fVerbose;
       std::string fInitialTrackInputLabel;
       std::string fShowerStartPositionOutputLabel;
 
@@ -48,7 +47,6 @@ namespace ShowerRecoTools {
 
   ShowerTrackStartPosition::ShowerTrackStartPosition(const fhicl::ParameterSet& pset) :
     IShowerTool(pset.get<fhicl::ParameterSet>("BaseTools")),
-    fVerbose(pset.get<int>("Verbose")),
     fInitialTrackInputLabel(pset.get<std::string>("InitialTrackInputLabel")),
     fShowerStartPositionOutputLabel(pset.get<std::string>("ShowerStartPositionOutputLabel"))
   {
@@ -60,12 +58,12 @@ namespace ShowerRecoTools {
 
   int ShowerTrackStartPosition::CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
       art::Event& Event, reco::shower::ShowerElementHolder& ShowerEleHolder){
+    return 0;
 
     //Check the Track has been defined
     if(!ShowerEleHolder.CheckElement("InitialTrack")){
-      if (fVerbose)
-        mf::LogError("ShowerTrackStartPosition")
-          << "Initial track not set"<< std::endl;
+      mf::LogError("ShowerSmartTrackTrajectoryPointDirection")
+        << "Initial track not set"<< std::endl;
       return 1;
     }
     recob::Track InitialTrack;
@@ -79,8 +77,9 @@ namespace ShowerRecoTools {
     TVector3 TrajPosition = {TrajPosition_vec.X(), TrajPosition_vec.Y(),TrajPosition_vec.Z()};
     ShowerEleHolder.SetElement(TrajPosition,StartPositionErr,fShowerStartPositionOutputLabel);
 
-    return 0;
   }
+
+
 }
 
 DEFINE_ART_CLASS_TOOL(ShowerRecoTools::ShowerTrackStartPosition)

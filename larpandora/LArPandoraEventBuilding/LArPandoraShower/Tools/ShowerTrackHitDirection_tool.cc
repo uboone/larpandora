@@ -49,11 +49,10 @@ namespace ShowerRecoTools {
     private:
 
       //fcl
-      int  fVerbose;
       bool fUsePandoraVertex; //Direction from point defined as (Position of Hit - Vertex)
       //rather than (Position of Hit - Track Start Point)
       art::InputTag fHitModuleLabel;
-      art::InputTag fPFParticleLabel;
+      art::InputTag fPFParticleModuleLabel;
 
       std::string fInitialTrackHitsInputLabel;
       std::string fShowerStartPositionInputLabel;
@@ -64,10 +63,9 @@ namespace ShowerRecoTools {
 
   ShowerTrackHitDirection::ShowerTrackHitDirection(const fhicl::ParameterSet& pset)
     :  IShowerTool(pset.get<fhicl::ParameterSet>("BaseTools")),
-    fVerbose(pset.get<int>("Verbose")),
     fUsePandoraVertex(pset.get<bool>         ("UsePandoraVertex")),
     fHitModuleLabel(pset.get<art::InputTag>("HitModuleLabel")),
-    fPFParticleLabel(pset.get<art::InputTag>("PFParticleLabel")),
+    fPFParticleModuleLabel(pset.get<art::InputTag>("PFParticleModuleLabel")),
     fInitialTrackHitsInputLabel(pset.get<std::string>("InitialTrackHitsInputLabel")),
     fShowerStartPositionInputLabel(pset.get<std::string>("ShowerStartPositionInputLabel")),
     fInitialTrackInputLabel(pset.get<std::string>("InitialTrackInputLabel")),
@@ -85,15 +83,13 @@ namespace ShowerRecoTools {
 
     //Check the Track Hits has been defined
     if(!ShowerEleHolder.CheckElement(fInitialTrackHitsInputLabel)){
-      if (fVerbose)
-        mf::LogError("ShowerTrackHitDirection") << "Initial track hits not set"<< std::endl;
+      mf::LogError("ShowerTrackHitDirection") << "Initial track hits not set"<< std::endl;
       return 0;
     }
 
     //Check the start position is set.
     if(fUsePandoraVertex && !ShowerEleHolder.CheckElement(fShowerStartPositionInputLabel)){
-      if (fVerbose)
-        mf::LogError("ShowerTrackHitDirection") << "Start position not set, returning "<< std::endl;
+      mf::LogError("ShowerTrackHitDirection") << "Start position not set, returning "<< std::endl;
       return 0;
     }
 
@@ -105,8 +101,7 @@ namespace ShowerRecoTools {
     else{
       //Check the Tracks has been defined
       if(!ShowerEleHolder.CheckElement(fInitialTrackInputLabel)){
-        if (fVerbose)
-          mf::LogError("ShowerTrackHitDirection") << "Initial track not set"<< std::endl;
+        mf::LogError("ShowerTrackHitDirection") << "Initial track not set"<< std::endl;
         return 0;
       }
       recob::Track InitialTrack;
@@ -125,7 +120,7 @@ namespace ShowerRecoTools {
 
     //Get the spacepoint handle. We need to do this in 3D.
     art::FindManyP<recob::SpacePoint>& fmsp = ShowerEleHolder.GetFindManyP<recob::SpacePoint>(
-        hitHandle, Event, fPFParticleLabel);
+        hitHandle, Event, fPFParticleModuleLabel);
     if(!fmsp.isValid()){
       throw cet::exception("ShowerTrackHitDirection") << "Spacepoint and hit association not valid. Stopping.";
       return 1;
@@ -196,8 +191,7 @@ namespace ShowerRecoTools {
       ShowerEleHolder.SetElement(Direction,fShowerDirectionOutputLabel);
     }
     else{
-      if (fVerbose)
-        mf::LogError("ShowerTrackHitDirection") << "None of the points are within 1 sigma"<< std::endl;
+      mf::LogError("ShowerTrackHitDirection") << "None of the points are within 1 sigma"<< std::endl;
       return 1;
     }
     return 0;

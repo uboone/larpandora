@@ -37,22 +37,20 @@ namespace ShowerRecoTools {
 
     private:
 
-      art::InputTag fPFParticleLabel;
-      int           fVerbose;
+      art::InputTag fPFParticleModuleLabel;
       std::string fShowerPCAInputLabel;
-      std::string fShowerLengthOutputLabel;
-      std::string fShowerOpeningAngleOutputLabel;
+      std::string fShowerLengthOuputLabel;
+      std::string fShowerOpeningAngleOuputLabel;
       float fNSigma;
   };
 
 
   ShowerPCAEigenvalueLength::ShowerPCAEigenvalueLength(const fhicl::ParameterSet& pset) :
     IShowerTool(pset.get<fhicl::ParameterSet>("BaseTools")),
-    fPFParticleLabel(pset.get<art::InputTag>("PFParticleLabel")),
-    fVerbose(pset.get<int>("Verbose")),
+    fPFParticleModuleLabel(pset.get<art::InputTag>("PFParticleModuleLabel")),
     fShowerPCAInputLabel(pset.get<std::string>("ShowerPCAInputLabel")),
-    fShowerLengthOutputLabel(pset.get<std::string>("ShowerLengthOutputLabel")),
-    fShowerOpeningAngleOutputLabel(pset.get<std::string>("ShowerOpeningAngleOutputLabel")),
+    fShowerLengthOuputLabel(pset.get<std::string>("ShowerLengthOuputLabel")),
+    fShowerOpeningAngleOuputLabel(pset.get<std::string>("ShowerOpeningAngleOuputLabel")),
     fNSigma(pset.get<float>("NSigma"))
   {
   }
@@ -62,8 +60,7 @@ namespace ShowerRecoTools {
 
 
     if(!ShowerEleHolder.CheckElement(fShowerPCAInputLabel)){
-      if (fVerbose)
-        mf::LogError("ShowerPCAEigenvalueLength") << "PCA not set, returning "<< std::endl;
+      mf::LogError("ShowerPCAEigenvalueLength") << "PCA not set, returning "<< std::endl;
       return 1;
     }
 
@@ -92,8 +89,8 @@ namespace ShowerRecoTools {
     double ShowerAngleError = -9999;
 
     // Fill the shower element holder
-    ShowerEleHolder.SetElement(ShowerLength, ShowerLengthError, fShowerLengthOutputLabel);
-    ShowerEleHolder.SetElement(ShowerAngle, ShowerAngleError, fShowerOpeningAngleOutputLabel);
+    ShowerEleHolder.SetElement(ShowerLength, ShowerLengthError, fShowerLengthOuputLabel);
+    ShowerEleHolder.SetElement(ShowerAngle, ShowerAngleError, fShowerOpeningAngleOuputLabel);
 
     return 0;
   }

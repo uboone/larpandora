@@ -1,21 +1,25 @@
 #include "larpandora/LArPandoraEventBuilding/LArPandoraShower/Algs/LArPandoraShowerAlg.h"
 
 shower::LArPandoraShowerAlg::LArPandoraShowerAlg(const fhicl::ParameterSet& pset):
-  fDetProp(lar::providerFrom<detinfo::DetectorPropertiesService>()),
-  fUseCollectionOnly(pset.get<bool>("UseCollectionOnly")),
-  fPFParticleLabel(pset.get<art::InputTag> ("PFParticleLabel")),
-  fInitialTrackInputLabel(pset.get<std::string>("InitialTrackInputLabel")),
-  fShowerStartPositionInputLabel(pset.get<std::string>("ShowerStartPositionInputLabel")),
-  fShowerDirectionInputLabel(pset.get<std::string>("ShowerDirectionInputLabel")),
-  fInitialTrackSpacePointsInputLabel(pset.get<std::string>("InitialTrackSpacePointsInputLabel"))
+  fDetProp(lar::providerFrom<detinfo::DetectorPropertiesService>())
 {
+  fUseCollectionOnly      = pset.get<bool>("UseCollectionOnly");
+  fPFParticleModuleLabel  = pset.get<art::InputTag> ("PFParticleModuleLabel");
+  fHitModuleLabel         = pset.get<art::InputTag> ("HitModuleLabel");
+  fInitialTrackInputLabel = pset.get<std::string>("InitialTrackInputLabel");
+  fShowerStartPositionInputLabel = pset.get<std::string>("ShowerStartPositionInputLabel");
+  fShowerDirectionInputLabel = pset.get<std::string>("ShowerDirectionInputLabel");
+  fInitialTrackSpacePointsInputLabel = pset.get<std::string>("InitialTrackSpacePointsInputLabel");
 }
+
 
 //Order the shower hits with regards to their projected length onto
 //the shower direction from the shower start position. This is done
 //in the 2D coordinate system (wire direction, x)
 void shower::LArPandoraShowerAlg::OrderShowerHits(std::vector<art::Ptr<recob::Hit> >& hits,
-    TVector3 const& ShowerStartPosition, TVector3 const& ShowerDirection) const {
+    TVector3 const& ShowerStartPosition,
+    TVector3 const& ShowerDirection
+    ) const {
 
   std::map<double, art::Ptr<recob::Hit> > OrderedHits;
   art::Ptr<recob::Hit> startHit = hits.front();
@@ -281,6 +285,8 @@ double shower::LArPandoraShowerAlg::DistanceBetweenSpacePoints(art::Ptr<recob::S
   return distance;
 }
 
+
+
 //Return the charge of the spacepoint in ADC.
 double shower::LArPandoraShowerAlg::SpacePointCharge(art::Ptr<recob::SpacePoint> const& sp,
     art::FindManyP<recob::Hit> const& fmh) const {
@@ -348,7 +354,8 @@ double shower::LArPandoraShowerAlg::SpacePointPerpendicular(art::Ptr<recob::Spac
 }
 
 double shower::LArPandoraShowerAlg::SpacePointPerpendicular(art::Ptr<recob::SpacePoint> const &sp,
-    TVector3 const& vertex, TVector3 const& direction, double proj) const {
+    TVector3 const& vertex, TVector3 const& direction,
+    double proj) const {
 
   // Get the position of the spacepoint
   TVector3 pos = shower::LArPandoraShowerAlg::SpacePointPosition(sp) - vertex;
@@ -398,16 +405,16 @@ void shower::LArPandoraShowerAlg::DebugEVD(art::Ptr<recob::PFParticle> const& pf
   // going to be used to debug I don't care, I would rather have generality in this case
 
   art::Handle<std::vector<recob::PFParticle> > pfpHandle;
-  if (!Event.getByLabel(fPFParticleLabel, pfpHandle)){
-    throw cet::exception("LArPandoraShowerAlg") << "Could not get the pandora pf particles\
+  if (!Event.getByLabel(fPFParticleModuleLabel, pfpHandle)){
+    throw cet::exception("Shower3DTrackFinderEMShower") << "Could not get the pandora pf particles\
       . Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
     return;
   }
 
   // Get the spacepoint - PFParticle assn
-  art::FindManyP<recob::SpacePoint> fmspp(pfpHandle, Event, fPFParticleLabel);
+  art::FindManyP<recob::SpacePoint> fmspp(pfpHandle, Event, fPFParticleModuleLabel);
   if (!fmspp.isValid()){
-    throw cet::exception("LArPandoraShowerAlg") << "Trying to get the spacepoint and failed. Somet\
+    throw cet::exception("Shower3DTrackFinder") << "Trying to get the spacepoint and failed. Somet\
       hing is not configured correctly. Stopping ";
     return;
   }
@@ -417,7 +424,7 @@ void shower::LArPandoraShowerAlg::DebugEVD(art::Ptr<recob::PFParticle> const& pf
 
   //We cannot progress with no spacepoints.
   if(spacePoints.size() == 0){
-    //throw cet::exception("LArPandoraShowerAlg") << "No Space Points. Stopping.";
+    //throw cet::exception("Shower3DTrackFinder") << "No Space Points. Stopping.";
     return;
   }
 
@@ -431,7 +438,7 @@ void shower::LArPandoraShowerAlg::DebugEVD(art::Ptr<recob::PFParticle> const& pf
   //######################
   double startXYZ[3] = {-999,-999,-999};
   if(!ShowerEleHolder.CheckElement(fShowerStartPositionInputLabel)){
-    mf::LogError("LArPandoraShowerAlg") << "Start position not set, returning "<< std::endl;
+    mf::LogError("Shower3DTrackFinder") << "Start position not set, returning "<< std::endl;
     // return;
   }
   else{
@@ -459,7 +466,7 @@ void shower::LArPandoraShowerAlg::DebugEVD(art::Ptr<recob::PFParticle> const& pf
 
 
   if(!ShowerEleHolder.CheckElement(fShowerDirectionInputLabel) && !ShowerEleHolder.CheckElement("ShowerStartPosition")){
-    mf::LogError("LArPandoraShowerAlg") << "Direction not set, returning "<< std::endl;
+    mf::LogError("Shower3DTrackFinder") << "Direction not set, returning "<< std::endl;
     //return;
   }
   else{
@@ -525,7 +532,7 @@ void shower::LArPandoraShowerAlg::DebugEVD(art::Ptr<recob::PFParticle> const& pf
 
   std::unique_ptr<TPolyMarker3D> trackPoly = std::unique_ptr<TPolyMarker3D>(new TPolyMarker3D(trackSpacePoints.size()));
   if(!ShowerEleHolder.CheckElement(fInitialTrackSpacePointsInputLabel)){
-    mf::LogError("LArPandoraShowerAlg") << "TrackSpacePoints not set, returning "<< std::endl;
+    mf::LogError("Shower3DTrackFinder") << "TrackSpacePoints not set, returning "<< std::endl;
     //    return;
   }
   else{
@@ -557,11 +564,11 @@ void shower::LArPandoraShowerAlg::DebugEVD(art::Ptr<recob::PFParticle> const& pf
   //  we want to draw all of the PFParticles in the event
   //Get the PFParticles
   std::vector<art::Ptr<recob::PFParticle> > pfps;
-  if (Event.getByLabel(fPFParticleLabel, pfpHandle)){
+  if (Event.getByLabel(fPFParticleModuleLabel, pfpHandle)){
     art::fill_ptr_vector(pfps, pfpHandle);
   }
   else {
-    throw cet::exception("LArPandoraShowerAlg") << "pfps not loaded." << std::endl;
+    throw cet::exception("LArPandoraModularShower") << "pfps not loaded." << std::endl;
   }
   // initialse counters
   // Split into tracks and showers to make it clearer what pandora is doing
