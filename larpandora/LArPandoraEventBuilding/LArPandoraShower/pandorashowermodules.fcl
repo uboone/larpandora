@@ -2,28 +2,25 @@
 
 BEGIN_PROLOG
 
-legacy_pandoraModularShowerCreation: {
+standard_pandoraModularShowerCreation: {
 
     module_type: "LArPandoraModularShowerCreation"
 
-    # Commented tools are the recommended default tools but they must be
-    # configured to use experiment specific calorimetry
-    # Note, order or running will dictate best plane:
-    # set in energy tools but overridden by dEdx tools (if they succeed)`
     ShowerFinderTools: [
          @local::showerpfpvertexstartposition,
          @local::showerpcadirection,
          @local::showerpcapropergationstartposition,
-         @local::showerpcaeigenvaluelength,
-         # @local::showernumelectronsenergy,
-         @local::shower3dcylindertrackhitfinder,
-         @local::showerpandoraslidingfittrackfinder
-         # @local::showerunidirectiondedx
+         @local::showerlengthpercentile,
+         @local::showerlinearenergy,
+         @local::shower3Dtrackhitfinder,
+         @local::showerpandoraslidingfittrackfinder,
+         @local::showerstandardcalodedx
     ]
 
-    PFParticleLabel:          "pandora"
-    AllowPartialShowers:       true
-    Verbose:                   0
+    PFParticleModuleLabel:      "pandora"
+    SecondInteration:           false
+    AllowPartialShowers:        true
+    Verbose:                    false
 
     ShowerStartPositionLabel: "ShowerStartPosition"
     ShowerDirectionLabel:     "ShowerDirection"
@@ -34,30 +31,24 @@ legacy_pandoraModularShowerCreation: {
     ShowerBestPlaneLabel:     "ShowerBestPlane"
 }
 
-standard_pandoraModularShowerCreation: {
+test_pandoraModularShowerCreation: {
 
     module_type: "LArPandoraModularShowerCreation"
 
-    # Commented tools are the recommended default tools but they must be
-    # configured to use experiment specific calorimetry
-    # Note, order or running will dictate best plane:
-    # set in energy tools but overridden by dEdx tools (if they succeed)`
     ShowerFinderTools: [
          @local::showerpfpvertexstartposition,
          @local::showerpcadirection,
          @local::showerlengthpercentile,
-         # @local::showernumelectronsenergy,
-         @local::showerincrementaltrackhitfinder,
-         # @local::showerunidirectiondedx
+         @local::showerlinearenergy,
+         @local::shower3Dtrackhitfinder,
          @local::showerpandoraslidingfittrackfinder,
-         @local::showertracktrajpointdirection,
-         @local::showerdirectiontopologydecision
-         # @local::showertrajpointdedx,
+         @local::showerstandardcalodedx
     ]
 
-    PFParticleLabel:          "pandora"
-    AllowPartialShowers:       true
-    Verbose:                   0
+    PFParticleModuleLabel:      "pandora"
+    SecondInteration:           false
+    AllowPartialShowers:        true
+    Verbose:                    false
 
     ShowerStartPositionLabel: "ShowerStartPosition"
     ShowerDirectionLabel:     "ShowerDirection"
