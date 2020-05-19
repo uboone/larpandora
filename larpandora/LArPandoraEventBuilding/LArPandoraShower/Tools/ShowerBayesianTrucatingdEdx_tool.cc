@@ -82,7 +82,6 @@ namespace ShowerRecoTools {
       TH1F* photonpriorHist;
 
       //fcl params
-      int fVerbose;
       std::string fdEdxInputLabel;
       int fNumSeedHits;
       float fProbSeedCut;
@@ -97,7 +96,6 @@ namespace ShowerRecoTools {
 
   ShowerBayesianTrucatingdEdx::ShowerBayesianTrucatingdEdx(const fhicl::ParameterSet& pset) :
     IShowerTool(pset.get<fhicl::ParameterSet>("BaseTools")),
-    fVerbose(pset.get<int>("Verbose")),
     fdEdxInputLabel(pset.get<std::string>("dEdxInputLabel")),
     fNumSeedHits(pset.get<int>("NumSeedHits")),
     fProbSeedCut(pset.get<float>("ProbDiff")),
@@ -161,8 +159,7 @@ namespace ShowerRecoTools {
 
     //Get the vectors of the dEdx Elements
     if(!ShowerEleHolder.CheckElement(fdEdxInputLabel)){
-      if (fVerbose)
-        mf::LogError("ShowerBayesianTrucatingdEdx") << "Start position not set, returning "<< std::endl;
+      mf::LogError("ShowerSlidingStandardCalodEdx") << "Start position not set, returning "<< std::endl;
       return 1;
     }
 

@@ -33,7 +33,6 @@ namespace ShowerRecoTools {
 
     private:
 
-      int   fVerbose;
       float fAngleCut;
       std::string fFirstDirectionInputLabel;
       std::string fSecondDirectionInputLabel;
@@ -43,7 +42,6 @@ namespace ShowerRecoTools {
 
   ShowerDirectionTopologyDecisionTool::ShowerDirectionTopologyDecisionTool(const fhicl::ParameterSet& pset) :
     IShowerTool(pset.get<fhicl::ParameterSet>("BaseTools")),
-    fVerbose(pset.get<int>("Verbose")),
     fAngleCut(pset.get<float>("AngleCut")),
     fFirstDirectionInputLabel(pset.get<std::string>("FirstDirectionInputLabel")),
     fSecondDirectionInputLabel(pset.get<std::string>("SecondDirectionInputLabel")),
@@ -56,13 +54,11 @@ namespace ShowerRecoTools {
 
     //Check the relevent products
     if(!ShowerEleHolder.CheckElement(fFirstDirectionInputLabel)){
-      if (fVerbose)
-        mf::LogError("ShowerDirectionTopologyDecision") << "fFirstDirectionInputLabel is is not set. Stopping.";
+      mf::LogError("ShowerDirectionEnergyDecision") << "fFirstDirectionInputLabel is is not set. Stopping.";
       return 1;
     }
     if(!ShowerEleHolder.CheckElement(fSecondDirectionInputLabel)){
-      if (fVerbose)
-        mf::LogError("ShowerDirectionTopologyDecision") << "fSecondDirectionInputLabel is is not set. Stopping.";
+      mf::LogError("ShowerDirectionEnergyDecision") << "fSecondDirectionInputLabel is is not set. Stopping.";
       return 1;
     }
 
