@@ -159,6 +159,7 @@ namespace ShowerRecoTools {
     {
       if(fStartFitSize == 0){
         throw cet::exception("ShowerIncrementalTrackHitFinder") << "We cannot make a track if you don't gives us at leats one hit. Change fStartFitSize please to something sensible";
+        return 1;
       }
     }
 
@@ -311,6 +312,7 @@ namespace ShowerRecoTools {
     if (fRunTest) RunTestOfIncrementalSpacePointFinder(fmh);
 
     //Actually runt he algorithm.
+    //    std::cout << "test1 " << std::endl;
     std::vector<art::Ptr<recob::SpacePoint> > track_sps = RunIncrementalSpacePointFinder(spacePoints, fmh);
 
     // Get the hits associated to the space points and seperate them by planes
@@ -423,6 +425,8 @@ namespace ShowerRecoTools {
   void ShowerIncrementalTrackHitFinder::MakeTrackSeed(std::vector< art::Ptr< recob::SpacePoint> >& segment,
       art::FindManyP<recob::Hit> & fmh){
 
+    //    std::cout << "test seed 0" << std::endl;
+
     bool ok=true;
 
     int maxresidual_point = 0;
@@ -430,8 +434,12 @@ namespace ShowerRecoTools {
     //Check the residual
     double residual = FitSegmentAndCalculateResidual(segment, fmh, maxresidual_point);
 
+    //    std::cout << "test seed 1" << std::endl;
+
     //Is it okay
     ok = IsResidualOK(residual, segment.size());
+
+    //    std::cout << "test seed 2" << std::endl;
 
     //Remove points until we can fit a track.
     while(!ok && segment.size()!=1){
@@ -451,6 +459,7 @@ namespace ShowerRecoTools {
       ok = IsResidualOK(residual, segment.size());
 
     }
+    //    std::cout << "test seed 1" << std::endl;
   }
 
   std::vector<art::Ptr<recob::SpacePoint> > ShowerIncrementalTrackHitFinder::RunIncrementalSpacePointFinder(
