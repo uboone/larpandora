@@ -66,7 +66,7 @@ public:
     /**
      *  @brief Get maximum gap size
      */
-    static float GetMaxGapSize();
+    static float GetMaxGapSize() noexcept;
 
 private:
     float   m_x1;
@@ -389,7 +389,7 @@ inline float LArDetectorGap::GetZ2() const
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 
-inline float LArDetectorGap::GetMaxGapSize()
+inline float LArDetectorGap::GetMaxGapSize() noexcept
 {
     return 30.f; // TODO: 30cm should be fine but can we do better than a hard-coded number here?
 }

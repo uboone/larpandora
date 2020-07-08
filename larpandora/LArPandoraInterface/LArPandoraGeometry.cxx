@@ -75,10 +75,10 @@ void LArPandoraGeometry::LoadDetectorGaps(LArDetectorGapList &listOfGaps)
                 (driftVolume2.GetCenterZ() + 0.5f * driftVolume2.GetWidthZ())));
 
             if (isDualPhase && (std::fabs(gapY) > maxDisplacement || std::fabs(gapZ) > maxDisplacement))
-                listOfGaps.push_back(LArDetectorGap(X1, Y1 + widthY, Z1 + widthZ, X2, Y2 - widthY, Z2 - widthZ));
+                listOfGaps.emplace_back(LArDetectorGap(X1, Y1 + widthY, Z1 + widthZ, X2, Y2 - widthY, Z2 - widthZ));
 
             else if (!isDualPhase)
-                listOfGaps.push_back(LArDetectorGap(X1, Y1, Z1, X2, Y2, Z2));
+                listOfGaps.emplace_back(LArDetectorGap(X1, Y1, Z1, X2, Y2, Z2));
         }
     }
 }
@@ -280,9 +280,9 @@ void LArPandoraGeometry::LoadGeometry(LArDriftVolumeList &driftVolumeList)
             if (isDualPhase)
             {
                 LArDaughterDriftVolumeList tpcVolumeList;
-                tpcVolumeList.push_back(LArDaughterDriftVolume(icstat, itpc1));
+                tpcVolumeList.emplace_back(LArDaughterDriftVolume(icstat, itpc1));
 
-                driftVolumeList.push_back(LArDriftVolume(driftVolumeList.size(), isPositiveDrift,
+                driftVolumeList.emplace_back(LArDriftVolume(driftVolumeList.size(), isPositiveDrift,
                     wirePitchU, wirePitchV, wirePitchW, wireAngleU, wireAngleV, wireAngleW,
                     0.5f * (driftMaxX + driftMinX), 0.5f * (driftMaxY + driftMinY), 0.5f * (driftMaxZ + driftMinZ),
                     (driftMaxX - driftMinX), (driftMaxY - driftMinY), (driftMaxZ - driftMinZ),
@@ -341,9 +341,9 @@ void LArPandoraGeometry::LoadGeometry(LArDriftVolumeList &driftVolumeList)
                 if (isDualPhase)
                 {
                     LArDaughterDriftVolumeList tpcVolumeList;
-                    tpcVolumeList.push_back(LArDaughterDriftVolume(icstat, itpc2));
+                    tpcVolumeList.emplace_back(LArDaughterDriftVolume(icstat, itpc2));
 
-                    driftVolumeList.push_back(LArDriftVolume(driftVolumeList.size(), isPositiveDrift,
+                    driftVolumeList.emplace_back(LArDriftVolume(driftVolumeList.size(), isPositiveDrift,
                         wirePitchU, wirePitchV, wirePitchW, wireAngleU, wireAngleV, wireAngleW,
                         0.5f * (driftMaxX2 + driftMinX2), 0.5f * (driftMaxY2 + driftMinY2), 0.5f * (driftMaxZ2 + driftMinZ2),
                         (driftMaxX2 - driftMinX2), (driftMaxY2 - driftMinY2), (driftMaxZ2 - driftMinZ2),
@@ -362,7 +362,7 @@ void LArPandoraGeometry::LoadGeometry(LArDriftVolumeList &driftVolumeList)
 
             // Create new daughter drift volume (volume ID = 0 to N-1)
             if (!isDualPhase)
-                driftVolumeList.push_back(LArDriftVolume(driftVolumeList.size(), isPositiveDrift,
+                driftVolumeList.emplace_back(LArDriftVolume(driftVolumeList.size(), isPositiveDrift,
                     wirePitchU, wirePitchV, wirePitchW, wireAngleU, wireAngleV, wireAngleW,
                     0.5f * (driftMaxX + driftMinX), 0.5f * (driftMaxY + driftMinY), 0.5f * (driftMaxZ + driftMinZ),
                     (driftMaxX - driftMinX), (driftMaxY - driftMinY), (driftMaxZ - driftMinZ),
