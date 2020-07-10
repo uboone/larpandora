@@ -277,18 +277,6 @@ void LArPandoraGeometry::LoadGeometry(LArDriftVolumeList &driftVolumeList)
             UIntSet tpcList;
             tpcList.insert(itpc1);
 
-            if (isDualPhase)
-            {
-                LArDaughterDriftVolumeList tpcVolumeList;
-                tpcVolumeList.emplace_back(LArDaughterDriftVolume(icstat, itpc1));
-
-                driftVolumeList.emplace_back(LArDriftVolume(driftVolumeList.size(), isPositiveDrift,
-                    wirePitchU, wirePitchV, wirePitchW, wireAngleU, wireAngleV, wireAngleW,
-                    0.5f * (driftMaxX + driftMinX), 0.5f * (driftMaxY + driftMinY), 0.5f * (driftMaxZ + driftMinZ),
-                    (driftMaxX - driftMinX), (driftMaxY - driftMinY), (driftMaxZ - driftMinZ),
-                    (wirePitchU + wirePitchV + wirePitchW + 0.1f), tpcVolumeList));
-            }
-
             // Now identify the other TPCs associated with this drift volume
             for (unsigned int itpc2 = itpc1+1; itpc2 < theGeometry->NTPC(icstat); ++itpc2)
             {
@@ -338,18 +326,6 @@ void LArPandoraGeometry::LoadGeometry(LArDriftVolumeList &driftVolumeList)
                 driftMinZ = std::min(driftMinZ, driftMinZ2);
                 driftMaxZ = std::max(driftMaxZ, driftMaxZ2);
 
-                if (isDualPhase)
-                {
-                    LArDaughterDriftVolumeList tpcVolumeList;
-                    tpcVolumeList.emplace_back(LArDaughterDriftVolume(icstat, itpc2));
-
-                    driftVolumeList.emplace_back(LArDriftVolume(driftVolumeList.size(), isPositiveDrift,
-                        wirePitchU, wirePitchV, wirePitchW, wireAngleU, wireAngleV, wireAngleW,
-                        0.5f * (driftMaxX2 + driftMinX2), 0.5f * (driftMaxY2 + driftMinY2), 0.5f * (driftMaxZ2 + driftMinZ2),
-                        (driftMaxX2 - driftMinX2), (driftMaxY2 - driftMinY2), (driftMaxZ2 - driftMinZ2),
-                        (wirePitchU + wirePitchV + wirePitchW + 0.1f), tpcVolumeList));
-                }
-
             }
 
             // Collate the tpc volumes in this drift volume
@@ -361,12 +337,11 @@ void LArPandoraGeometry::LoadGeometry(LArDriftVolumeList &driftVolumeList)
             }
 
             // Create new daughter drift volume (volume ID = 0 to N-1)
-            if (!isDualPhase)
-                driftVolumeList.emplace_back(LArDriftVolume(driftVolumeList.size(), isPositiveDrift,
-                    wirePitchU, wirePitchV, wirePitchW, wireAngleU, wireAngleV, wireAngleW,
-                    0.5f * (driftMaxX + driftMinX), 0.5f * (driftMaxY + driftMinY), 0.5f * (driftMaxZ + driftMinZ),
-                    (driftMaxX - driftMinX), (driftMaxY - driftMinY), (driftMaxZ - driftMinZ),
-                    (wirePitchU + wirePitchV + wirePitchW + 0.1f), tpcVolumeList));
+            driftVolumeList.emplace_back(LArDriftVolume(driftVolumeList.size(), isPositiveDrift,
+                wirePitchU, wirePitchV, wirePitchW, wireAngleU, wireAngleV, wireAngleW,
+                0.5f * (driftMaxX + driftMinX), 0.5f * (driftMaxY + driftMinY), 0.5f * (driftMaxZ + driftMinZ),
+                (driftMaxX - driftMinX), (driftMaxY - driftMinY), (driftMaxZ - driftMinZ),
+                (wirePitchU + wirePitchV + wirePitchW + 0.1f), tpcVolumeList));
         }
     }
 
