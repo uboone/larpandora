@@ -75,7 +75,6 @@ private:
     float   m_x2;
     float   m_y2;
     float   m_z2;
-    //float   m_maxGapSize; // unused - note that GetMaxGapSize returns a hard coded number
 };
 
 typedef std::vector<LArDetectorGap> LArDetectorGapList;
