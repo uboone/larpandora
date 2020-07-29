@@ -592,19 +592,20 @@ class reco::shower::ShowerElementHolder{
         return abi::__cxa_demangle(typeid(object).name(),NULL,NULL,&status);
       }
 
+    template <class T>
+      std::string getType(){
+        int status = -9;
+        return abi::__cxa_demangle(typeid(T).name(),NULL,NULL,&status);
+      }
 
     template <class T1, class T2>
       art::FindManyP<T1>& GetFindManyP(art::Handle<std::vector<T2> > &handle,
           art::Event &evt, art::InputTag &moduleTag){
 
-        T1 type1();
-        T2 type2();
+        const std::string typeName1(getType<T1>());
+        const std::string typeName2(getType<T2>());
 
-        std::string typeName1 = getType(type1);
-        std::string typeName2 = getType(type2);
-
-        std::string name = "FMP" + moduleTag.label() + typeName2 + typeName1;
-
+        const std::string name("FOP" + moduleTag.label() + typeName2 + typeName1);
 
         if (CheckEventElement(name)){
           art::FindManyP<T1>& findManyP = GetEventElement<art::FindManyP<T1> >(name);
@@ -628,13 +629,10 @@ class reco::shower::ShowerElementHolder{
       art::FindOneP<T1> GetFindOneP(art::Handle<std::vector<T2> > &handle,
           art::Event &evt, art::InputTag &moduleTag){
 
-        T1 type1();
-        T2 type2();
+        const std::string typeName1(getType<T1>());
+        const std::string typeName2(getType<T2>());
 
-        std::string typeName1 = getType(type1);
-        std::string typeName2 = getType(type2);
-
-        std::string name = "FOP" + moduleTag.label() + typeName2 + typeName1;
+        const std::string name("FOP" + moduleTag.label() + typeName2 + typeName1);
 
         if (CheckEventElement(name)){
           art::FindOneP<T1> findOneP = GetEventElement<art::FindOneP<T1> >(name);
