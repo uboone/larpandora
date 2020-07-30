@@ -66,18 +66,10 @@ namespace ShowerRecoTools {
     std::map<int,std::vector<int> > showersMothers = fLArPandoraShowerCheatingAlg.GetTrueChain(trueParticles);
 
     //Get the hits from the shower:
-    art::Handle<std::vector<recob::PFParticle> > pfpHandle;
-    if (!Event.getByLabel(fPFParticleLabel, pfpHandle)){
-      throw cet::exception("ShowerStartPositionCheater") << "Could not get the pandora pf particles. Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
-      return 1;
-    }
+    auto const pfpHandle = Event.getValidHandle<std::vector<recob::PFParticle> >(fPFParticleLabel);
 
     //Get the clusters
-    art::Handle<std::vector<recob::Cluster> > clusHandle;
-    if (!Event.getByLabel(fPFParticleLabel, clusHandle)){
-      throw cet::exception("ShowerStartPositionCheater") << "Could not get the pandora clusters. Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
-      return 1;
-    }
+    auto const clusHandle = Event.getValidHandle<std::vector<recob::Cluster> >(fPFParticleLabel);
 
     art::FindManyP<recob::Cluster> fmc(pfpHandle, Event, fPFParticleLabel);
     std::vector<art::Ptr<recob::Cluster> > clusters = fmc.at(pfparticle.key());

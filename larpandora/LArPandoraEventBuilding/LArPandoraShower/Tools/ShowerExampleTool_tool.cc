@@ -68,16 +68,10 @@ namespace ShowerRecoTools {
     //In here calculate a shower or element (or multiple). It can be something used to create the recob::shower i.e. the direction. These have specific names so be careful to make these correctly. Alternative you can create something completely new e.g. recob::Vertex and add it the shower element holder
 
     //Now we are calculating the property of the shower like pfparticle. You have access to everything in the event. Maybe you want the vertex.
-    art::Handle<std::vector<recob::Vertex> > vtxHandle;
+
+    auto const vtxHandle = Event.getValidHandle<std::vector<recob::Vertex> >(fPFParticleLabel);
     std::vector<art::Ptr<recob::Vertex> > vertices;
-    if (Event.getByLabel(fPFParticleLabel, vtxHandle))
-      art::fill_ptr_vector(vertices, vtxHandle);
-    else {
-      throw cet::exception("ShowerExampleTool") << "Could not get the pandora vertices. Something is not configured correctly. Please give the correct pandora module label. Stopping";
-      return 1;
-    }
-
-
+    art::fill_ptr_vector(vertices, vtxHandle);
 
     //Remember the module goes through the tools and if you want to (fcl param) it will loop over them twice. You can check to see if a element has been set with a specific name:
     bool shower_direction_set = ShowerEleHolder.CheckElement("ShowerDirection");

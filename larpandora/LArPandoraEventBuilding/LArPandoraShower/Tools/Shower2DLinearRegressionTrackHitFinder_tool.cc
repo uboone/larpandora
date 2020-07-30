@@ -106,20 +106,10 @@ namespace ShowerRecoTools{
     ShowerEleHolder.GetElement(fShowerDirectionInputLabel,ShowerDirection);
 
     // Get the assocated pfParicle vertex PFParticles
-    art::Handle<std::vector<recob::PFParticle> > pfpHandle;
-    if (!Event.getByLabel(fPFParticleLabel, pfpHandle)){
-      throw cet::exception("Shower2DLinearRegressionTrackHitFinder")
-        << "Could not get the pandora pf particles. Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
-      return 1;
-    }
+    auto const pfpHandle = Event.getValidHandle<std::vector<recob::PFParticle> >(fPFParticleLabel);
 
     //Get the clusters
-    art::Handle<std::vector<recob::Cluster> > clusHandle;
-    if (!Event.getByLabel(fPFParticleLabel, clusHandle)){
-      throw cet::exception("Shower2DLinearRegressionTrackHitFinder")
-        << "Could not get the pandora clusters. Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
-      return 1;
-    }
+    auto const clusHandle = Event.getValidHandle<std::vector<recob::Cluster> >(fPFParticleLabel);
 
     art::FindManyP<recob::Cluster>& fmc = ShowerEleHolder.GetFindManyP<recob::Cluster>
       (pfpHandle, Event, fPFParticleLabel);
@@ -174,12 +164,7 @@ namespace ShowerRecoTools{
 
     //Get the associated spacepoints
     //Get the hits
-    art::Handle<std::vector<recob::Hit> > hitHandle;
-    if (!Event.getByLabel(fHitLabel, hitHandle)){
-      throw cet::exception("Shower2DLinearRegressionTrackHitFinder")
-        << "Could not get the hits." << std::endl;
-      return 1;
-    }
+    auto const hitHandle = Event.getValidHandle<std::vector<recob::Hit> >(fHitLabel);
 
     //get the sp<->hit association
     art::FindManyP<recob::SpacePoint> fmsp = ShowerEleHolder.GetFindManyP<recob::SpacePoint>
@@ -187,7 +172,6 @@ namespace ShowerRecoTools{
     if(!fmsp.isValid()){
       throw cet::exception("Shower2DLinearRegressionTrackHitFinder")
         << "Spacepoint and hit association not valid. Stopping." << std::endl;
-      return 1;
     }
 
     //Get the spacepoints associated to the track hit

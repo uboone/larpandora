@@ -144,17 +144,12 @@ namespace ShowerRecoTools {
 
 
     // Get the spacepoints
-    art::Handle<std::vector<recob::SpacePoint> > spHandle;
-    if (!Event.getByLabel(fPFParticleLabel, spHandle)){
-      throw cet::exception("ShowerTrackTrajToSpacePoint") << "Could not configure the spacepoint handle. Something is configured incorrectly. Stopping";
-      return 1;
-    }
+    auto const spHandle = Event.getValidHandle<std::vector<recob::SpacePoint> >(fPFParticleLabel);
 
     // Get the hits associated with the space points
     art::FindOneP<recob::Hit> fohsp(spHandle, Event, fPFParticleLabel);
     if(!fohsp.isValid()){
       throw cet::exception("ShowerTrackTrajToSpacePoint") << "Spacepoint and hit association not valid. Stopping.";
-      return 1;
     }
 
     //Save the corresponding hits

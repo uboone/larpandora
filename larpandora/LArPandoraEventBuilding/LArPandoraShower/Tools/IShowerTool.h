@@ -18,7 +18,7 @@
 
 //LArSoft Includes
 #include "larpandora/LArPandoraEventBuilding/LArPandoraShower/Algs/ShowerElementHolder.hh"
-#include "larpandora/LArPandoraEventBuilding/LArPandoraShower/Algs/ShowerProduedPtrsHolder.hh"
+#include "larpandora/LArPandoraEventBuilding/LArPandoraShower/Algs/ShowerProducedPtrsHolder.hh"
 #include "larpandora/LArPandoraEventBuilding/LArPandoraShower/Algs/LArPandoraShowerAlg.h"
 
 namespace ShowerRecoTools{
@@ -64,7 +64,7 @@ namespace ShowerRecoTools{
       }
 
       //Initialises the unique ptr holder so that the tool can access it behind the scenes.
-      void InitaliseProducerPtr(reco::shower::ShowerProduedPtrsHolder& uniqueproducerPtrs){
+      void InitaliseProducerPtr(reco::shower::ShowerProducedPtrsHolder& uniqueproducerPtrs){
         UniquePtrs = &uniqueproducerPtrs;
       }
 
@@ -78,7 +78,7 @@ namespace ShowerRecoTools{
     private:
 
       //ptr to the holder of all the unique ptrs.
-      reco::shower::ShowerProduedPtrsHolder* UniquePtrs;
+      reco::shower::ShowerProducedPtrsHolder* UniquePtrs;
 
       //Algorithm functions
       shower::LArPandoraShowerAlg fLArPandoraShowerAlg;
@@ -98,14 +98,12 @@ namespace ShowerRecoTools{
           bool check_element = ShowerEleHolder.CheckElement(Name);
           if(!check_element){
             throw cet::exception("IShowerTool") << "tried to get a element that does not exist. Failed at making the art ptr for Element: " << Name << std::endl;
-            return art::Ptr<T>();
           }
 
           //Check the unique ptr has been set.
           bool check_ptr = UniquePtrs->CheckUniqueProduerPtr(Name);
           if(!check_ptr){
             throw cet::exception("IShowerTool") << "tried to get a ptr that does not exist. Failed at making the art ptr for Element" << Name;
-            return art::Ptr<T>();
           }
 
           //Check if the user has defined an index if not just use the current shower index/

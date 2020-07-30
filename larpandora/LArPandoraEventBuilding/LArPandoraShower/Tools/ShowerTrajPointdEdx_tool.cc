@@ -125,25 +125,20 @@ namespace ShowerRecoTools{
     std::vector<art::Ptr<recob::SpacePoint> > tracksps;
     ShowerEleHolder.GetElement(fInitialTrackSpacePointsInputLabel,tracksps);
 
-    if(tracksps.size() == 0){
+    if(tracksps.empty()){
       if (fVerbose)
         mf::LogWarning("ShowerTrajPointdEdx") << "no spacepointsin the initial track" << std::endl;
       return 0;
     }
 
     // Get the spacepoints
-    art::Handle<std::vector<recob::SpacePoint> > spHandle;
-    if (!Event.getByLabel(fPFParticleLabel, spHandle)){
-      throw cet::exception("ShowerTrajPointdEdx") << "Could not configure the spacepoint handle. Something is configured incorrectly. Stopping";
-      return 1;
-    }
+    auto const spHandle = Event.getValidHandle<std::vector<recob::SpacePoint> >(fPFParticleLabel);
 
     // Get the hits associated with the space points
     art::FindManyP<recob::Hit>& fmsp = ShowerEleHolder.GetFindManyP<recob::Hit>(
         spHandle, Event, fPFParticleLabel);
     if(!fmsp.isValid()){
       throw cet::exception("ShowerTrajPointdEdx") << "Spacepoint and hit association not valid. Stopping.";
-      return 1;
     }
 
     //Only consider hits in the same tpcs as the vertex.
@@ -171,7 +166,7 @@ namespace ShowerRecoTools{
 
       //Get the associated hit
       std::vector<art::Ptr<recob::Hit> > hits = fmsp.at(sp.key());
-      if(hits.size() == 0){
+      if(hits.empty()){
         if (fVerbose)
           mf::LogWarning("ShowerTrajPointdEdx") << "no hit for the spacepoint. This suggest the find many is wrong."<< std::endl;
         continue;
@@ -327,7 +322,7 @@ namespace ShowerRecoTools{
     std::vector<double> dEdx_valErr;
     for(auto const& dEdx_plane: dEdx_vec_cut){
 
-      if((dEdx_plane.second).size() == 0){
+      if((dEdx_plane.second).empty()){
         dEdx_val.push_back(-999);
         dEdx_valErr.push_back(-999);
         continue;

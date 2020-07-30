@@ -72,11 +72,7 @@ namespace ShowerRecoTools {
     const simb::MCParticle* trueParticle;
 
     //Get the hits from the shower:
-    art::Handle<std::vector<recob::PFParticle> > pfpHandle;
-    if (!Event.getByLabel(fPFParticleLabel, pfpHandle)){
-      throw cet::exception("ShowerTrackFinderCheater") << "Could not get the pandora pf particles. Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
-      return 1;
-    }
+    auto const pfpHandle = Event.getValidHandle<std::vector<recob::PFParticle> >(fPFParticleLabel);
 
     if (ShowerEleHolder.CheckElement(fTrueParticleIntputLabel)){
       ShowerEleHolder.GetElement(fTrueParticleIntputLabel,trueParticle);
@@ -88,11 +84,7 @@ namespace ShowerRecoTools {
 
 
       //Get the clusters
-      art::Handle<std::vector<recob::Cluster> > clusHandle;
-      if (!Event.getByLabel(fPFParticleLabel, clusHandle)){
-        throw cet::exception("ShowerTrackFinderCheater") << "Could not get the pandora clusters. Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
-        return 1;
-      }
+      auto const clusHandle = Event.getValidHandle<std::vector<recob::Cluster> >(fPFParticleLabel);
       art::FindManyP<recob::Cluster> fmc(pfpHandle, Event, fPFParticleLabel);
       std::vector<art::Ptr<recob::Cluster> > clusters = fmc.at(pfparticle.key());
 
@@ -133,17 +125,14 @@ namespace ShowerRecoTools {
     TVector3 ShowerDirection     = {-999,-999,-999};
     ShowerEleHolder.GetElement(fShowerDirectionInputTag,ShowerDirection);
 
-    art::Handle<std::vector<recob::Hit> > hitHandle;
+    auto const hitHandle = Event.getValidHandle<std::vector<recob::Hit> >(fHitModuleLabel);
     std::vector<art::Ptr<recob::Hit> > hits;
-    if(Event.getByLabel(fHitModuleLabel, hitHandle)){
-      art::fill_ptr_vector(hits, hitHandle);
-    }
+    art::fill_ptr_vector(hits, hitHandle);
 
     // Get the hits associated with the space points
     art::FindManyP<recob::SpacePoint> fmsph(hitHandle, Event, fPFParticleLabel);
     if(!fmsph.isValid()){
       throw cet::exception("ShowerTrackFinderCheater") << "Spacepoint and hit association not valid. Stopping.";
-      return 1;
     }
 
     std::vector<art::Ptr<recob::Hit> > trackHits;

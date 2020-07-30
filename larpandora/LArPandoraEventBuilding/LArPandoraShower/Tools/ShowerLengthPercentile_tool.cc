@@ -66,30 +66,21 @@ namespace ShowerRecoTools {
     ShowerEleHolder.GetElement(fShowerStartPositionInputLabel,ShowerStartPosition);
 
     // Get the assocated pfParicle Handle
-    art::Handle<std::vector<recob::PFParticle> > pfpHandle;
-    if (!Event.getByLabel(fPFParticleLabel, pfpHandle)){
-      throw cet::exception("ShowerLengthPercentile") << "Could not get the pandora pf particles. Something is not cofingured correctly Please give the correct pandoa module label. Stopping";
-      return 1;
-    }
+    auto const pfpHandle = Event.getValidHandle<std::vector<recob::PFParticle> >(fPFParticleLabel);
 
     // Get the spacepoint - PFParticle assn
     art::FindManyP<recob::SpacePoint>& fmspp = ShowerEleHolder.GetFindManyP<recob::SpacePoint>(
         pfpHandle, Event, fPFParticleLabel);
     if (!fmspp.isValid()){
       throw cet::exception("ShowerLengthPercentile") << "Trying to get the spacepoint and failed. Something is not configured correctly. Stopping ";
-      return 1;
     }
 
     // Get the spacepoints
-    art::Handle<std::vector<recob::SpacePoint> > spHandle;
-    if (!Event.getByLabel(fPFParticleLabel, spHandle)){
-      throw cet::exception("ShowerLengthPercentile") << "Could not configure the spacepoint handle. Something is configured incorrectly. Stopping";
-      return 1;
-    }
+    auto const spHandle = Event.getValidHandle<std::vector<recob::SpacePoint> >(fPFParticleLabel);
 
     // Get the SpacePoints
     std::vector<art::Ptr<recob::SpacePoint> > spacePoints = fmspp.at(pfparticle.key());
-    if (!spacePoints.size()){
+    if (spacePoints.empty()){
       if (fVerbose)
         mf::LogError("ShowerLengthPercentile") << "No Spacepoints, returning" <<std::endl;
       return 1;

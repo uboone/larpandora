@@ -88,16 +88,12 @@ namespace ShowerRecoTools {
     }
 
     //Get the spacepoints handle and the hit assoication
-    art::Handle<std::vector<recob::SpacePoint> > spHandle;
-    if (!Event.getByLabel(fPFParticleLabel, spHandle)){
-      throw cet::exception("ShowerTrackPCA") << "Could not configure the spacepoint handle. Something is configured incorrectly. Stopping";
-      return 1;
-    }
+    auto const spHandle = Event.getValidHandle<std::vector<recob::SpacePoint> >(fPFParticleLabel);
+
     art::FindManyP<recob::Hit>& fmh = ShowerEleHolder.GetFindManyP<recob::Hit>(
         spHandle, Event, fPFParticleLabel);
     if(!fmh.isValid()){
       throw cet::exception("ShowerTrackPCA") << "Spacepoint and hit association not valid. Stopping.";
-      return 1;
     }
 
     std::vector<art::Ptr<recob::SpacePoint> > trackSpacePoints;

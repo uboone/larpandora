@@ -81,18 +81,14 @@ void shower::LArPandoraShowerCheatingAlg::CheatDebugEVD(const simb::MCParticle* 
   std::vector<art::Ptr<recob::SpacePoint> > showerSpacePoints;
   std::vector<art::Ptr<recob::SpacePoint> > otherSpacePoints;
 
-  art::Handle<std::vector<recob::Hit> > hitHandle;
+  auto const hitHandle = Event.getValidHandle<std::vector<recob::Hit> >(fHitModuleLabel);
   std::vector<art::Ptr<recob::Hit> > hits;
-  if(Event.getByLabel(fHitModuleLabel, hitHandle)){
-    art::fill_ptr_vector(hits, hitHandle);
-  }
-
+  art::fill_ptr_vector(hits, hitHandle);
 
   // Get the hits associated with the space points
   art::FindManyP<recob::SpacePoint> fmsph(hitHandle, Event, fPFParticleLabel);
   if(!fmsph.isValid()){
     throw cet::exception("LArPandoraShowerCheatingAlg") << "Spacepoint and hit association not valid. Stopping.";
-    return;
   }
 
   std::map< art::Ptr<recob::SpacePoint>, art::Ptr<recob::Hit> > spacePointHitMap;

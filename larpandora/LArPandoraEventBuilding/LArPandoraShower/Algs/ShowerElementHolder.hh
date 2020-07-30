@@ -21,17 +21,15 @@
 #include <string>
 #include <memory>
 #include <iomanip>
-#include <cxxabi.h>
+#include "cetlib_except/demangle.h"
 
-namespace reco {
-  namespace shower {
-    class ShowerElementBase;
-    template <class T> class ShowerElementAccessor;
-    template <class T> class ShowerDataProduct;
-    template <class T> class EventDataProduct;
-    template <class T, class T2> class ShowerProperty;
-    class ShowerElementHolder;
-  }
+namespace reco::shower {
+  class ShowerElementBase;
+  template <class T> class ShowerElementAccessor;
+  template <class T> class ShowerDataProduct;
+  template <class T> class EventDataProduct;
+  template <class T, class T2> class ShowerProperty;
+  class ShowerElementHolder;
 }
 
 class reco::shower::ShowerElementBase {
@@ -114,8 +112,7 @@ class reco::shower::ShowerElementAccessor : public reco::shower::ShowerElementBa
 
     //Return the type as a string.
     std::string GetType() override {
-      int status = -9;
-      return abi::__cxa_demangle(typeid(element).name(),NULL,NULL,&status);
+      return cet::demangle_symbol(typeid(element).name());
     }
 
   protected:
@@ -223,7 +220,7 @@ class reco::shower::ShowerElementHolder{
         if(showerproperties.find(Name) != showerproperties.end()){
           if(showerproperties[Name]->CheckShowerElement()){
             reco::shower::ShowerElementAccessor<T> *showerprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(showerproperties[Name].get());
-            if(showerprop == NULL){
+            if(showerprop == nullptr){
               throw cet::exception("ShowerElementHolder") << "Trying to get Element: " << Name << ". This element you are filling is not the correct type" << std::endl;
             }
             showerprop->GetShowerElement(Element);
@@ -236,7 +233,7 @@ class reco::shower::ShowerElementHolder{
         } else if(showerdataproducts.find(Name) != showerdataproducts.end()){
           if(showerdataproducts[Name]->CheckShowerElement()){
             reco::shower::ShowerElementAccessor<T> *showerprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(showerdataproducts[Name].get());
-            if(showerprop == NULL){
+            if(showerprop == nullptr){
               throw cet::exception("ShowerElementHolder") << "Trying to get Element: " << Name << ". This element you are filling is not the correct type" << std::endl;
             }
             showerprop->GetShowerElement(Element);
@@ -249,7 +246,7 @@ class reco::shower::ShowerElementHolder{
         } else if (eventdataproducts.find(Name) != eventdataproducts.end()){
           if(eventdataproducts[Name]->CheckShowerElement()){
             reco::shower::ShowerElementAccessor<T> *eventprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(eventdataproducts[Name].get());
-            if(eventprop == NULL){
+            if(eventprop == nullptr){
               throw cet::exception("ShowerElementHolder") << "Trying to get Element: " << Name << ". This element you are filling is not the correct type" << std::endl;
             }
             eventprop->GetShowerElement(Element);
@@ -268,7 +265,7 @@ class reco::shower::ShowerElementHolder{
         if (eventdataproducts.find(Name) != eventdataproducts.end()){
           if(eventdataproducts[Name]->CheckShowerElement()){
             reco::shower::ShowerElementAccessor<T> *eventprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(eventdataproducts[Name].get());
-            if(eventprop == NULL){
+            if(eventprop == nullptr){
               throw cet::exception("ShowerElementHolder") << "Trying to get Element: " << Name << ". This element you are filling is not the correct type" << std::endl;
             }
             eventprop->GetShowerElement(Element);
@@ -288,7 +285,7 @@ class reco::shower::ShowerElementHolder{
         if (eventdataproducts.find(Name) != eventdataproducts.end()){
           if(eventdataproducts[Name]->CheckShowerElement()){
             reco::shower::ShowerElementAccessor<T> *eventprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(eventdataproducts[Name].get());
-            if(eventprop == NULL){
+            if(eventprop == nullptr){
               throw cet::exception("ShowerElementHolder") << "Trying to get Element: " << Name << ". This element you are filling is not the correct type" << std::endl;
             }
             return eventprop->GetShowerElementRef();
@@ -303,7 +300,7 @@ class reco::shower::ShowerElementHolder{
         if(showerproperties.find(Name) != showerproperties.end()){
           if(showerproperties[Name]->CheckShowerElement()){
             reco::shower::ShowerElementAccessor<T> *showerprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(showerproperties[Name].get());
-            if(showerprop == NULL){
+            if(showerprop == nullptr){
               throw cet::exception("ShowerElementHolder") << "Trying to get Element: " << Name << ". This element you are filling is not the correct type" << std::endl;
             }
             return showerprop->GetShowerElement();
@@ -312,7 +309,7 @@ class reco::shower::ShowerElementHolder{
         else if(showerdataproducts.find(Name) != showerdataproducts.end()){
           if(showerdataproducts[Name]->CheckShowerElement()){
             reco::shower::ShowerElementAccessor<T> *showerprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(showerdataproducts[Name].get());
-            if(showerprop == NULL){
+            if(showerprop == nullptr){
               throw cet::exception("ShowerElementHolder") << "Trying to get Element: " << Name << ". This element you are filling is not the correct type" << std::endl;
             }
             return showerprop->GetShowerElement();
@@ -320,7 +317,7 @@ class reco::shower::ShowerElementHolder{
         } else if (eventdataproducts.find(Name) != eventdataproducts.end()){
           if(eventdataproducts[Name]->CheckShowerElement()){
             reco::shower::ShowerElementAccessor<T> *eventprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(eventdataproducts[Name].get());
-            if(eventprop == NULL){
+            if(eventprop == nullptr){
               throw cet::exception("ShowerElementHolder") << "Trying to get Element: " << Name << ". This element you are filling is not the correct type" << std::endl;
             }
             return eventprop->GetShowerElement();
@@ -588,18 +585,16 @@ class reco::shower::ShowerElementHolder{
 
     template <class T>
       std::string getType(T object){
-        int status = -9;
-        return abi::__cxa_demangle(typeid(object).name(),NULL,NULL,&status);
+        return cet::demangle_symbol(typeid(object).name());
       }
 
     template <class T>
       std::string getType(){
-        int status = -9;
-        return abi::__cxa_demangle(typeid(T).name(),NULL,NULL,&status);
+        return cet::demangle_symbol(typeid(T).name());
       }
 
     template <class T1, class T2>
-      art::FindManyP<T1>& GetFindManyP(art::Handle<std::vector<T2> > &handle,
+      art::FindManyP<T1>& GetFindManyP(const art::ValidHandle<std::vector<T2> > &handle,
           art::Event &evt, art::InputTag &moduleTag){
 
         const std::string typeName1(getType<T1>());
@@ -626,7 +621,7 @@ class reco::shower::ShowerElementHolder{
       }
 
     template <class T1, class T2>
-      art::FindOneP<T1> GetFindOneP(art::Handle<std::vector<T2> > &handle,
+      art::FindOneP<T1> GetFindOneP(const art::ValidHandle<std::vector<T2> > &handle,
           art::Event &evt, art::InputTag &moduleTag){
 
         const std::string typeName1(getType<T1>());

@@ -75,37 +75,30 @@ namespace ShowerRecoTools {
     if(!ShowerEleHolder.CheckElement(fShowerCentreInputLabel)){
 
       // Get the assocated pfParicle vertex PFParticles
-      art::Handle<std::vector<recob::PFParticle> > pfpHandle;
-      if (!Event.getByLabel(fPFParticleLabel, pfpHandle)){
-        throw cet::exception("ShowerPCAPropergationStartPosition") << "Could not get the pandora pf particles. Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
-        return 1;
-      }
+      auto const pfpHandle = Event.getValidHandle<std::vector<recob::PFParticle> >(fPFParticleLabel);
+
       art::FindManyP<recob::SpacePoint>& fmspp = ShowerEleHolder.GetFindManyP<recob::SpacePoint>(
           pfpHandle, Event, fPFParticleLabel);
 
       if (!fmspp.isValid()){
         throw cet::exception("ShowerPCAPropergationStartPosition") << "Trying to get the spacepoint and failed. Something is not configured correctly. Stopping ";
-        return 1;
       }
 
       //Get the spacepoints handle and the hit assoication
-      art::Handle<std::vector<recob::SpacePoint> > spHandle;
-      if (!Event.getByLabel(fPFParticleLabel, spHandle)){
-        throw cet::exception("ShowerPCAPropergationStartPosition") << "Could not configure the spacepoint handle. Something is configured incorrectly. Stopping";
-        return 1;
-      }
+      auto const spHandle = Event.getValidHandle<std::vector<recob::SpacePoint> >(fPFParticleLabel);
+
       art::FindManyP<recob::Hit>& fmh = ShowerEleHolder.GetFindManyP<recob::Hit>(
           spHandle, Event, fPFParticleLabel);
       if(!fmh.isValid()){
         throw cet::exception("ShowerPCAPropergationStartPosition") << "Spacepoint and hit association not valid. Stopping.";
-        return 1;
       }
 
       //Spacepoints
       std::vector<art::Ptr<recob::SpacePoint> > spacePoints_pfp = fmspp.at(pfparticle.key());
 
       //We cannot progress with no spacepoints.
-      if(spacePoints_pfp.size() == 0){return 0;}
+      if(spacePoints_pfp.empty())
+        return 1;
 
       //Get the shower center
       ShowerCentre = IShowerTool::GetLArPandoraShowerAlg().ShowerCentre(spacePoints_pfp,fmh);

@@ -94,7 +94,7 @@ namespace ShowerRecoTools{
     std::vector<art::Ptr<recob::Hit> > trackhits;
     ShowerEleHolder.GetElement(fInitialTrackHitsInputLabel,trackhits);
 
-    if(trackhits.size() == 0){
+    if(trackhits.empty()){
       if (fVerbose)
         mf::LogWarning("ShowerUnidirectiondEdx") << "Not Hits in the initial track" << std::endl;
       return 0;
@@ -217,7 +217,6 @@ namespace ShowerRecoTools{
 
     if (bestPlane==-999){
       throw cet::exception("ShowerUnidirectiondEdx") << "No best plane set";
-      return 1;
     } else {
       ShowerEleHolder.SetElement(bestPlane,fShowerBestPlaneOutputLabel);
     }

@@ -99,20 +99,13 @@ namespace ShowerRecoTools {
     unsigned int numPlanes = fGeom->Nplanes();
 
     // Get the assocated pfParicle vertex PFParticles
-    art::Handle<std::vector<recob::PFParticle> > pfpHandle;
-    if (!Event.getByLabel(fPFParticleLabel, pfpHandle)){
-      throw cet::exception("ShowerNumElectronsEnergy") << "Could not get the pandora pf particles. Something is not configured correctly Please give the correct pandora module label. Stopping";
-      return 1;
-    }
+    auto const pfpHandle = Event.getValidHandle<std::vector<recob::PFParticle> >(fPFParticleLabel);
 
     std::map<geo::View_t, std::vector<art::Ptr<recob::Hit> > > view_hits;
 
     //Get the clusters
-    art::Handle<std::vector<recob::Cluster> > clusHandle;
-    if (!Event.getByLabel(fPFParticleLabel, clusHandle)){
-      throw cet::exception("ShowerNumElectronsEnergy") << "Could not get the pandora clusters. Something is not configured correctly Please give the correct pandora module label. Stopping";
-      return 1;
-    }
+    auto const clusHandle = Event.getValidHandle<std::vector<recob::Cluster> >(fPFParticleLabel);
+
     art::FindManyP<recob::Cluster>& fmc = ShowerEleHolder.GetFindManyP<recob::Cluster>(
         pfpHandle, Event, fPFParticleLabel);
     // art::FindManyP<recob::Cluster> fmc(pfpHandle, Event, fPFParticleLabel);
@@ -132,7 +125,7 @@ namespace ShowerRecoTools {
 
       //Get the hits
       std::vector<art::Ptr<recob::Hit> > hits = fmhc.at(cluster.key());
-      if(hits.size() == 0){
+      if(hits.empty()){
         if (fVerbose)
           mf::LogWarning("ShowerNumElectronsEnergy") << "No hit for the cluster. This suggest the find many is wrong."<< std::endl;
         continue;
@@ -195,9 +188,8 @@ namespace ShowerRecoTools {
       ShowerNumElectronsEnergy.push_back(Energy);
     }
 
-    if(ShowerNumElectronsEnergy.size() == 0){
+    if(ShowerNumElectronsEnergy.empty()){
       throw cet::exception("ShowerNumElectronsEnergy") << "Energy Vector is empty";
-      return 1;
     }
 
     std::vector<double> EnergyError = {-999,-999,-999};

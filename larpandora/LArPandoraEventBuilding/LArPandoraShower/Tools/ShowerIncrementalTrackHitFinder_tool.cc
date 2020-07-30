@@ -164,40 +164,30 @@ namespace ShowerRecoTools {
     }
 
     // Get the assocated pfParicle Handle
-    art::Handle<std::vector<recob::PFParticle> > pfpHandle;
-    if (!Event.getByLabel(fPFParticleLabel, pfpHandle)){
-      throw cet::exception("ShowerIncrementalTrackHitFinder") << "Could not get the pandora pf particles. Something is not cofingured correctly Please give the correct pandoa module label. Stopping";
-      return 1;
-    }
+    auto const pfpHandle = Event.getValidHandle<std::vector<recob::PFParticle> >(fPFParticleLabel);
 
     // Get the spacepoint - PFParticle assn
     art::FindManyP<recob::SpacePoint>& fmspp = ShowerEleHolder.GetFindManyP<recob::SpacePoint>(
         pfpHandle, Event, fPFParticleLabel);
     if (!fmspp.isValid()){
       throw cet::exception("ShowerIncrementalTrackHitFinder") << "Trying to get the spacepoint and failed. Something is not configured correctly. Stopping ";
-      return 1;
     }
 
     // Get the spacepoints
-    art::Handle<std::vector<recob::SpacePoint> > spHandle;
-    if (!Event.getByLabel(fPFParticleLabel, spHandle)){
-      throw cet::exception("ShowerIncrementalTrackHitFinder") << "Could not configure the spacepoint handle. Something is configured incorrectly. Stopping";
-      return 1;
-    }
+    auto const spHandle = Event.getValidHandle<std::vector<recob::SpacePoint> >(fPFParticleLabel);
 
     // Get the hits associated with the space points
     art::FindManyP<recob::Hit>& fmh = ShowerEleHolder.GetFindManyP<recob::Hit>(
         spHandle, Event, fPFParticleLabel);
     if(!fmh.isValid()){
       throw cet::exception("ShowerIncrementalTrackHitFinder") << "Spacepoint and hit association not valid. Stopping.";
-      return 1;
     }
 
     // Get the SpacePoints
     std::vector<art::Ptr<recob::SpacePoint> > spacePoints = fmspp.at(pfparticle.key());
 
     //We cannot progress with no spacepoints.
-    if(spacePoints.size() == 0){
+    if(spacePoints.empty()){
       if (fVerbose)
         mf::LogError("ShowerIncrementalTrackHitFinder") << "No space points, returning "<< std::endl;
       return 1;
@@ -462,7 +452,8 @@ namespace ShowerRecoTools {
       //Lets really try to make the initial track seed.
       if(fMakeTrackSeed && sps_pool.size()+fStartFitSize == sps.size()){
         MakeTrackSeed(track_segment,fmh);
-        if(track_segment.size()==0){break;}
+        if(track_segment.empty())
+          break;
 
         track_segment_copy = track_segment;
 
@@ -494,7 +485,8 @@ namespace ShowerRecoTools {
     }
 
     //If we have failed then no worry we have the seed. We shall just give those points.
-    if(fMakeTrackSeed && initial_track.size()==0){initial_track = track_segment_copy;}
+    if(fMakeTrackSeed && initial_track.empty())
+      initial_track = track_segment_copy;
 
     //Runt the algorithm that attepmts to remove hits too far away from the track.
     PruneTrack(initial_track);
@@ -507,7 +499,7 @@ namespace ShowerRecoTools {
       std::vector<art::Ptr<recob::SpacePoint> > const& initial_track){
 
     //If the initial track is empty then there is no pruning to do
-    if (initial_track.size() == 0) return;
+    if (initial_track.empty()) return;
     double distance = IShowerTool::GetLArPandoraShowerAlg().DistanceBetweenSpacePoints(initial_track.back(), sps_pool.front());
     while (distance > 1 && sps_pool.size() > 0){
       sps_pool.erase(sps_pool.begin());
@@ -518,7 +510,7 @@ namespace ShowerRecoTools {
 
   void ShowerIncrementalTrackHitFinder::PruneTrack(std::vector<art::Ptr<recob::SpacePoint> > & initial_track){
 
-    if (initial_track.size() == 0) return;
+    if (initial_track.empty()) return;
     std::vector<art::Ptr<recob::SpacePoint> >::iterator sps_it = initial_track.begin();
     while (sps_it != std::next(initial_track.end(),-1)){
       std::vector<art::Ptr<recob::SpacePoint> >::iterator next_sps_it = std::next(sps_it,1);
@@ -559,7 +551,7 @@ namespace ShowerRecoTools {
       double current_residual){
     bool ok = true;
     //Firstly, are there any space points left???
-    if (sps_pool.size() == 0) return !ok;
+    if (sps_pool.empty()) return !ok;
     //Fit the current line
     current_residual = FitSegmentAndCalculateResidual(segment, fmh);
     //Take a space point from the pool and plonk it onto the seggieweggie
@@ -652,7 +644,7 @@ namespace ShowerRecoTools {
       double current_residual){
     bool ok = true;
     //If the pool is empty, then there is nothing to do (sad)
-    if (reduced_sps_pool.size() == 0) return !ok;
+    if (reduced_sps_pool.empty()) return !ok;
     //Drop the last space point
     segment.pop_back();
     //Add one point

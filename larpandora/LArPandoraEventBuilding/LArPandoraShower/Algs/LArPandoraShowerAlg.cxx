@@ -397,27 +397,20 @@ void shower::LArPandoraShowerAlg::DebugEVD(art::Ptr<recob::PFParticle> const& pf
   // N.B. this is a horribly inefficient way of doing things but as this is only
   // going to be used to debug I don't care, I would rather have generality in this case
 
-  art::Handle<std::vector<recob::PFParticle> > pfpHandle;
-  if (!Event.getByLabel(fPFParticleLabel, pfpHandle)){
-    throw cet::exception("LArPandoraShowerAlg") << "Could not get the pandora pf particles\
-      . Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
-    return;
-  }
+  auto const pfpHandle = Event.getValidHandle<std::vector<recob::PFParticle> >(fPFParticleLabel);
 
   // Get the spacepoint - PFParticle assn
   art::FindManyP<recob::SpacePoint> fmspp(pfpHandle, Event, fPFParticleLabel);
   if (!fmspp.isValid()){
     throw cet::exception("LArPandoraShowerAlg") << "Trying to get the spacepoint and failed. Somet\
       hing is not configured correctly. Stopping ";
-    return;
   }
 
   // Get the SpacePoints
   std::vector<art::Ptr<recob::SpacePoint> > spacePoints = fmspp.at(pfparticle.key());
 
   //We cannot progress with no spacepoints.
-  if(spacePoints.size() == 0){
-    //throw cet::exception("LArPandoraShowerAlg") << "No Space Points. Stopping.";
+  if(spacePoints.empty()){
     return;
   }
 
@@ -557,12 +550,8 @@ void shower::LArPandoraShowerAlg::DebugEVD(art::Ptr<recob::PFParticle> const& pf
   //  we want to draw all of the PFParticles in the event
   //Get the PFParticles
   std::vector<art::Ptr<recob::PFParticle> > pfps;
-  if (Event.getByLabel(fPFParticleLabel, pfpHandle)){
-    art::fill_ptr_vector(pfps, pfpHandle);
-  }
-  else {
-    throw cet::exception("LArPandoraShowerAlg") << "pfps not loaded." << std::endl;
-  }
+  art::fill_ptr_vector(pfps, pfpHandle);
+
   // initialse counters
   // Split into tracks and showers to make it clearer what pandora is doing
   int pfpTrackCounter = 0;

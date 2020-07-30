@@ -213,7 +213,7 @@ namespace ShowerRecoTools {
         max_hits   = (dEdx_plane.second).size();
       }
 
-      if((dEdx_plane.second).size() == 0){
+      if((dEdx_plane.second).empty()){
         dEdx_final.push_back(-999);
         dEdx_finalErr.push_back(-999);
         continue;
@@ -256,8 +256,8 @@ namespace ShowerRecoTools {
     float minprob_temp = 9999;
     minprob_iter = 0;
 
-    TH1F* prior_hist = NULL;
-    TH1F* other_hist = NULL;
+    TH1F* prior_hist = nullptr;
+    TH1F* other_hist = nullptr;
 
     if(priorname=="electron"){prior_hist = electronpriorHist; other_hist = photonpriorHist;}
     if(priorname=="photon")  {prior_hist = photonpriorHist; other_hist = electronpriorHist;}
@@ -306,7 +306,7 @@ namespace ShowerRecoTools {
 
   bool ShowerBayesianTrucatingdEdx::CheckPoint(std::string priorname, double& value){
 
-    TH1F* prior_hist = NULL;
+    TH1F* prior_hist = nullptr;
 
     if(priorname=="electron"){prior_hist = electronpriorHist;}
     if(priorname=="photon")  {prior_hist = photonpriorHist;}

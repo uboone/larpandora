@@ -78,18 +78,11 @@ namespace ShowerRecoTools {
       ){
 
     // Get the assocated pfParicle vertex PFParticles
-    art::Handle<std::vector<recob::PFParticle> > pfpHandle;
-    if (!Event.getByLabel(fPFParticleLabel, pfpHandle)){
-      throw cet::exception("ShowerLinearEnergy") << "Could not get the pandora pf particles. Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
-      return 1;
-    }
+    auto const pfpHandle = Event.getValidHandle<std::vector<recob::PFParticle> >(fPFParticleLabel);
 
     //Get the clusters
-    art::Handle<std::vector<recob::Cluster> > clusHandle;
-    if (!Event.getByLabel(fPFParticleLabel, clusHandle)){
-      throw cet::exception("ShowerLinearEnergy") << "Could not get the pandora clusters. Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
-      return 1;
-    }
+    auto const clusHandle = Event.getValidHandle<std::vector<recob::Cluster> >(fPFParticleLabel);
+
     art::FindManyP<recob::Cluster>& fmc = ShowerEleHolder.GetFindManyP<recob::Cluster>(
         pfpHandle, Event, fPFParticleLabel);
     // art::FindManyP<recob::Cluster> fmc(pfpHandle, Event, fPFParticleLabel);

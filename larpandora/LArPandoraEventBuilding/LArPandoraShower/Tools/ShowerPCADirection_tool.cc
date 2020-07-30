@@ -102,12 +102,7 @@ namespace ShowerRecoTools {
       reco::shower::ShowerElementHolder& ShowerEleHolder){
 
     // Get the assocated pfParicle vertex PFParticles
-    art::Handle<std::vector<recob::PFParticle> > pfpHandle;
-    if (!Event.getByLabel(fPFParticleLabel, pfpHandle)){
-      throw cet::exception("ShowerPCADirection") << "Could not get the pandora pf particles. \
-        Something is not cofingured coreectly Please give the correct pandoa module label. Stopping";
-      return 1;
-    }
+    auto const pfpHandle = Event.getValidHandle<std::vector<recob::PFParticle> >(fPFParticleLabel);
 
     art::FindManyP<recob::SpacePoint>& fmspp = ShowerEleHolder.GetFindManyP<recob::SpacePoint>(
         pfpHandle, Event, fPFParticleLabel);
@@ -115,28 +110,24 @@ namespace ShowerRecoTools {
 
     if (!fmspp.isValid()){
       throw cet::exception("ShowerPCADirection") << "Trying to get the spacepoint and failed. Something is not configured correctly. Stopping ";
-      return 1;
     }
 
     //Get the spacepoints handle and the hit assoication
-    art::Handle<std::vector<recob::SpacePoint> > spHandle;
-    if (!Event.getByLabel(fPFParticleLabel, spHandle)){
-      throw cet::exception("ShowerPCADirection") << "Could not configure the spacepoint handle. Something is configured incorrectly. Stopping";
-      return 1;
-    }
+    auto const spHandle = Event.getValidHandle<std::vector<recob::SpacePoint> >(fPFParticleLabel);
+
     art::FindManyP<recob::Hit>& fmh = ShowerEleHolder.GetFindManyP<recob::Hit>(
         spHandle, Event, fPFParticleLabel);
     // art::FindManyP<recob::Hit> fmh(spHandle, Event, fPFParticleLabel);
     if(!fmh.isValid()){
       throw cet::exception("ShowerPCADirection") << "Spacepoint and hit association not valid. Stopping.";
-      return 1;
     }
 
     //Spacepoints
     std::vector<art::Ptr<recob::SpacePoint> > spacePoints_pfp = fmspp.at(pfparticle.key());
 
     //We cannot progress with no spacepoints.
-    if(spacePoints_pfp.size() == 0){return 0;}
+    if(spacePoints_pfp.empty())
+      return 1;
 
     //Find the PCA vector
     TVector3 ShowerCentre;
@@ -152,7 +143,6 @@ namespace ShowerRecoTools {
     if(fUseStartPosition){
       if(!ShowerEleHolder.CheckElement(fShowerStartPositionInputLabel)){
         throw cet::exception("ShowerPCADirection") << "fUseStartPosition is true but start position is not set. Stopping.";
-        return 1;
       }
       //Get the General direction as the vector between the start position and the centre
       TVector3 StartPositionVec = {-999, -999, -999};

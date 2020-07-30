@@ -25,10 +25,8 @@
 #include "lardataobj/RecoBase/Cluster.h"
 #include "larpandora/LArPandoraEventBuilding/LArPandoraShower/Tools/IShowerTool.h"
 
-namespace reco {
-  namespace shower {
-    class LArPandoraModularShowerCreation;
-  }
+namespace reco::shower {
+  class LArPandoraModularShowerCreation;
 }
 
 //Class
@@ -70,7 +68,7 @@ class reco::shower::LArPandoraModularShowerCreation: public art::EDProducer {
     std::vector<std::string>                                    fShowerToolNames;
 
     //map to the unique ptrs to
-    reco::shower::ShowerProduedPtrsHolder uniqueproducerPtrs;
+    reco::shower::ShowerProducedPtrsHolder uniqueproducerPtrs;
 
     // Required services
     art::ServiceHandle<geo::Geometry> fGeom;
@@ -87,16 +85,13 @@ art::Ptr<T> reco::shower::LArPandoraModularShowerCreation::GetProducedElementPtr
   if(!check_element){
     throw cet::exception("LArPandoraModularShowerCreation")
       << "To get a element that does not exist" << std::endl;
-    return art::Ptr<T>();
   }
 
   bool check_ptr = uniqueproducerPtrs.CheckUniqueProduerPtr(InstanceName);
   if(!check_ptr){
     throw cet::exception("LArPandoraModularShowerCreation")
       << "Tried to get a ptr that does not exist" << std::endl;
-    return art::Ptr<T>();
   }
-
 
   //Get the number of the shower we are on.
   int index;
@@ -199,22 +194,12 @@ void reco::shower::LArPandoraModularShowerCreation::produce(art::Event& evt) {
   reco::shower::ShowerElementHolder showerEleHolder;
 
   //Get the PFParticles
-  art::Handle<std::vector<recob::PFParticle> > pfpHandle;
+  auto const pfpHandle = evt.getValidHandle<std::vector<recob::PFParticle> >(fPFParticleLabel);
   std::vector<art::Ptr<recob::PFParticle> > pfps;
-  if (evt.getByLabel(fPFParticleLabel, pfpHandle)){
-    art::fill_ptr_vector(pfps, pfpHandle);
-  }
-  else {
-    throw cet::exception("LArPandoraModularShowerCreation")
-      << "pfps not loaded. Maybe you got the module label wrong?" << std::endl;
-  }
+  art::fill_ptr_vector(pfps, pfpHandle);
 
   //Handle to access the pandora hits assans
-  art::Handle<std::vector<recob::Cluster> > clusterHandle;
-  if (!evt.getByLabel(fPFParticleLabel,clusterHandle)){
-    throw cet::exception("LArPandoraModularShowerCreation")
-      << "pfp clusters are not loaded." << std::endl;
-  }
+  auto const clusterHandle = evt.getValidHandle<std::vector<recob::Cluster> >(fPFParticleLabel);
 
   //Get the assoications to hits, clusters and spacespoints
   art::FindManyP<recob::Hit> fmh = showerEleHolder.GetFindManyP<recob::Hit>(
