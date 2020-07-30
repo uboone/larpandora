@@ -21,8 +21,6 @@ namespace ShowerRecoTools {
 
       ShowerTrackFinderCheater(const fhicl::ParameterSet& pset);
 
-      ~ShowerTrackFinderCheater();
-
       //Generic Direction Finder
       int CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
           art::Event& Event,
@@ -58,10 +56,6 @@ namespace ShowerRecoTools {
     fShowerDirectionInputTag(pset.get<std::string>("ShowerDirectionInputTag")),
     fInitialTrackHitsOutputLabel(pset.get<std::string>("InitialTrackHitsOutputLabel")),
     fInitialTrackSpacePointsOutputLabel(pset.get<std::string>("InitialTrackSpacePointsOutputLabel"))
-  {
-  }
-
-  ShowerTrackFinderCheater::~ShowerTrackFinderCheater()
   {
   }
 

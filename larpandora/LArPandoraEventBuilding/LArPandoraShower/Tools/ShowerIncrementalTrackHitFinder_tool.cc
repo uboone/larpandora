@@ -25,8 +25,6 @@ namespace ShowerRecoTools {
 
       ShowerIncrementalTrackHitFinder(const fhicl::ParameterSet& pset);
 
-      ~ShowerIncrementalTrackHitFinder();
-
       //Generic Direction Finder
       int CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
           art::Event& Event,
@@ -147,11 +145,6 @@ namespace ShowerRecoTools {
         throw cet::exception("ShowerIncrementalTrackHitFinder") << "We cannot make a track if you don't gives us at leats one hit. Change fStartFitSize please to something sensible";
       }
     }
-
-  ShowerIncrementalTrackHitFinder::~ShowerIncrementalTrackHitFinder()
-  {
-  }
-
 
   int ShowerIncrementalTrackHitFinder::CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
       art::Event& Event, reco::shower::ShowerElementHolder& ShowerEleHolder){

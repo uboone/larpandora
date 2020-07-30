@@ -22,8 +22,6 @@ namespace ShowerRecoTools{
 
       ShowerUnidirectiondEdx(const fhicl::ParameterSet& pset);
 
-      ~ShowerUnidirectiondEdx();
-
       //Generic Direction Finder
       int CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
           art::Event& Event,
@@ -61,10 +59,6 @@ namespace ShowerRecoTools{
     fShowerDirectionInputLabel(pset.get<std::string>("ShowerDirectionInputLabel")),
     fShowerdEdxOutputLabel(pset.get<std::string>("ShowerdEdxOutputLabel")),
     fShowerBestPlaneOutputLabel(pset.get<std::string>("ShowerBestPlaneOutputLabel"))
-  {
-  }
-
-  ShowerUnidirectiondEdx::~ShowerUnidirectiondEdx()
   {
   }
 

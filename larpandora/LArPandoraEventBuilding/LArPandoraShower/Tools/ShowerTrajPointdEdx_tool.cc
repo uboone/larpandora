@@ -25,8 +25,6 @@ namespace ShowerRecoTools{
 
       ShowerTrajPointdEdx(const fhicl::ParameterSet& pset);
 
-      ~ShowerTrajPointdEdx();
-
       //Physics Function. Calculate the dEdx.
       int CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
           art::Event& Event,
@@ -90,10 +88,6 @@ namespace ShowerRecoTools{
     fShowerdEdxOutputLabel(pset.get<std::string>("ShowerdEdxOutputLabel")),
     fShowerBestPlaneOutputLabel(pset.get<std::string>("ShowerBestPlaneOutputLabel")),
     fShowerdEdxVecOutputLabel(pset.get<std::string>("ShowerdEdxVecOutputLabel"))
-  {
-  }
-
-  ShowerTrajPointdEdx::~ShowerTrajPointdEdx()
   {
   }
 

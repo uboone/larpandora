@@ -21,8 +21,6 @@ namespace ShowerRecoTools {
 
       ShowerTrackSpacePointDirection(const fhicl::ParameterSet& pset);
 
-      ~ShowerTrackSpacePointDirection();
-
       //Calculate the direction using the initial track spacepoints
       int CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
           art::Event& Event,
@@ -53,10 +51,6 @@ namespace ShowerRecoTools {
     fShowerStartPositionInputLabel(pset.get<std::string>("ShowerStartPositionInputLabel")),
     fInitialTrackInputLabel(pset.get<std::string>("InitialTrackInputLabel")),
     fShowerDirectionOutputLabel(pset.get<std::string>("ShowerDirectionOutputLabel"))
-  {
-  }
-
-  ShowerTrackSpacePointDirection::~ShowerTrackSpacePointDirection()
   {
   }
 

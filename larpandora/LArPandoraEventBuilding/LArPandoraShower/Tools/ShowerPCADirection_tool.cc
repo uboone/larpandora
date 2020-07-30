@@ -25,8 +25,6 @@ namespace ShowerRecoTools {
 
       ShowerPCADirection(const fhicl::ParameterSet& pset);
 
-      ~ShowerPCADirection();
-
       //Calculate the direction of the shower.
       int CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
           art::Event& Event,
@@ -83,10 +81,6 @@ namespace ShowerRecoTools {
     fShowerDirectionOutputLabel(pset.get<std::string>("ShowerDirectionOutputLabel")),
     fShowerCentreOutputLabel(pset.get<std::string>("ShowerCentreOutputLabel")),
     fShowerPCAOutputLabel(pset.get<std::string>("ShowerPCAOutputLabel"))
-  {
-  }
-
-  ShowerPCADirection::~ShowerPCADirection()
   {
   }
 

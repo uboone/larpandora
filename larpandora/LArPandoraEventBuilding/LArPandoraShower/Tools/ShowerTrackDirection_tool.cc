@@ -21,8 +21,6 @@ namespace ShowerRecoTools {
 
       ShowerTrackDirection(const fhicl::ParameterSet& pset);
 
-      ~ShowerTrackDirection();
-
       //Find Track Direction using initial track.
       int CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
           art::Event& Event,
@@ -48,10 +46,6 @@ namespace ShowerRecoTools {
     fVerbose(pset.get<int>("Verbose")),
     fUsePandoraVertex(pset.get<bool>("UsePandoraVertex")),
     fUsePositionInfo(pset.get<bool>("UsePositionInfo"))
-  {
-  }
-
-  ShowerTrackDirection::~ShowerTrackDirection()
   {
   }
 

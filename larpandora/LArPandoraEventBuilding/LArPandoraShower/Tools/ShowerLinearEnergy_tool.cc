@@ -22,8 +22,6 @@ namespace ShowerRecoTools {
 
       ShowerLinearEnergy(const fhicl::ParameterSet& pset);
 
-      ~ShowerLinearEnergy();
-
       //Physics Function. Calculate the shower Energy.
       int CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
           art::Event& Event,
@@ -67,10 +65,6 @@ namespace ShowerRecoTools {
         << fNumPlanes << ", Gradients size: " << fGradients.size() << ", Intercpts size: "
         << fIntercepts.size();
     }
-  }
-
-  ShowerLinearEnergy::~ShowerLinearEnergy()
-  {
   }
 
   int ShowerLinearEnergy::CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,

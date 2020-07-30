@@ -22,8 +22,6 @@ namespace ShowerRecoTools {
 
       ShowerTrackTrajToSpacePoint(const fhicl::ParameterSet& pset);
 
-      ~ShowerTrackTrajToSpacePoint();
-
       //Match trajectory points to the spacepoints
       int CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
           art::Event& Event,
@@ -56,10 +54,6 @@ namespace ShowerRecoTools {
     fInitialTrackInputTag(pset.get<std::string>("InitialTrackInputTag")),
     fShowerStartPositionInputTag(pset.get<std::string>("ShowerStartPositionInputTag")),
     fInitialTrackSpacePointsInputTag(pset.get<std::string>("InitialTrackSpacePointsInputTag"))
-  {
-  }
-
-  ShowerTrackTrajToSpacePoint::~ShowerTrackTrajToSpacePoint()
   {
   }
 

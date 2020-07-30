@@ -28,8 +28,6 @@ namespace ShowerRecoTools {
 
       ShowerNumElectronsEnergy(const fhicl::ParameterSet& pset);
 
-      ~ShowerNumElectronsEnergy();
-
       //Physics Function. Calculate the shower Energy.
       int CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
           art::Event& Event,
@@ -66,10 +64,6 @@ namespace ShowerRecoTools {
     detprop(lar::providerFrom<detinfo::DetectorPropertiesService>()),
     fCalorimetryAlg(pset.get<fhicl::ParameterSet>("CalorimetryAlg")),
     fRecombinationFactor(pset.get<double>("RecombinationFactor"))
-  {
-  }
-
-  ShowerNumElectronsEnergy::~ShowerNumElectronsEnergy()
   {
   }
 

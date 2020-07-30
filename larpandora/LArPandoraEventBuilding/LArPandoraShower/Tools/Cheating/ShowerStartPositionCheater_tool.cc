@@ -21,8 +21,6 @@ namespace ShowerRecoTools {
 
       ShowerStartPositionCheater(const fhicl::ParameterSet& pset);
 
-      ~ShowerStartPositionCheater();
-
       //Calculate Cheating Start Position
       int CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
           art::Event& Event,
@@ -50,10 +48,6 @@ namespace ShowerRecoTools {
     fHitModuleLabel(pset.get<art::InputTag>("HitModuleLabel")),
     fShowerStartPositionOutputLabel(pset.get<std::string>("ShowerStartPositionOutputLabel")),
     fTrueParticleOutputLabel(pset.get<std::string>("TrueParticleOutputLabel"))
-  {
-  }
-
-  ShowerStartPositionCheater::~ShowerStartPositionCheater()
   {
   }
 

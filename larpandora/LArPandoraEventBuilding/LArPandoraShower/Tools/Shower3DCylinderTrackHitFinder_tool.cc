@@ -21,8 +21,6 @@ namespace ShowerRecoTools{
 
       Shower3DCylinderTrackHitFinder(const fhicl::ParameterSet& pset);
 
-      ~Shower3DCylinderTrackHitFinder();
-
       //Generic Track Finder
       int CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
           art::Event& Event,
@@ -62,10 +60,6 @@ namespace ShowerRecoTools{
     fInitialTrackHitsOutputLabel(pset.get<std::string>("InitialTrackHitsOutputLabel")),
     fInitialTrackSpacePointsOutputLabel(pset.get<std::string>("InitialTrackSpacePointsOutputLabel")),
     fShowerDirectionInputLabel(pset.get<std::string>("ShowerDirectionInputLabel"))
-  {
-  }
-
-  Shower3DCylinderTrackHitFinder::~Shower3DCylinderTrackHitFinder()
   {
   }
 

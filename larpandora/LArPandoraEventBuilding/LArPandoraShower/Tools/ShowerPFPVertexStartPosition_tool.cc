@@ -22,8 +22,6 @@ namespace ShowerRecoTools{
 
       ShowerPFPVertexStartPosition(const fhicl::ParameterSet& pset);
 
-      ~ShowerPFPVertexStartPosition();
-
       //Calculate the start position
       int CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
           art::Event& Event,
@@ -47,10 +45,6 @@ namespace ShowerRecoTools{
     fVerbose(pset.get<int>("Verbose")),
     fShowerStartPositionOutputLabel(pset.get<std::string>("ShowerStartPositionOutputLabel")),
     fShowerDirectionInputLabel(pset.get<std::string>("ShowerDirectionInputLabel"))
-  {
-  }
-
-  ShowerPFPVertexStartPosition::~ShowerPFPVertexStartPosition()
   {
   }
 

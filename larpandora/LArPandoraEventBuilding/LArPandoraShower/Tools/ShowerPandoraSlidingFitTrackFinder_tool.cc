@@ -23,8 +23,6 @@ namespace ShowerRecoTools{
 
       ShowerPandoraSlidingFitTrackFinder(const fhicl::ParameterSet& pset);
 
-      ~ShowerPandoraSlidingFitTrackFinder();
-
       //Generic Track Finder
       int CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
           art::Event& Event, reco::shower::ShowerElementHolder& ShowerEleHolder) override;
@@ -64,10 +62,6 @@ namespace ShowerRecoTools{
     fShowerDirectionInputLabel(pset.get<std::string>("ShowerDirectionInputLabel")),
     fInitialTrackSpacePointsInputLabel(pset.get<std::string>("InitialTrackSpacePointsInputLabel")),
     fInitialTrackHitsInputLabel(pset.get<std::string>("InitialTrackHitsInputLabel"))
-  {
-  }
-
-  ShowerPandoraSlidingFitTrackFinder::~ShowerPandoraSlidingFitTrackFinder()
   {
   }
 

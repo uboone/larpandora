@@ -21,8 +21,6 @@ namespace ShowerRecoTools {
 
       ShowerPCAPropergationStartPosition(const fhicl::ParameterSet& pset);
 
-      ~ShowerPCAPropergationStartPosition();
-
       //Generic Direction Finder
       int CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
           art::Event& Event,
@@ -49,10 +47,6 @@ namespace ShowerRecoTools {
     fShowerCentreInputLabel(pset.get<std::string>("ShowerCentreInputLabel")),
     fShowerDirectionInputLabel(pset.get<std::string>("ShowerDirectionInputLabel")),
     fShowerStartPositionInputLabel(pset.get<std::string>("ShowerStartPositionInputLabel"))
-  {
-  }
-
-  ShowerPCAPropergationStartPosition::~ShowerPCAPropergationStartPosition()
   {
   }
 

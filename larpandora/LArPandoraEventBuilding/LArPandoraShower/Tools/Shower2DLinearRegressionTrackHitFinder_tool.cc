@@ -21,8 +21,6 @@ namespace ShowerRecoTools{
 
       Shower2DLinearRegressionTrackHitFinder(const fhicl::ParameterSet& pset);
 
-      ~Shower2DLinearRegressionTrackHitFinder();
-
       //Calculate the 2D initial track hits
       int CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
           art::Event& Event,
@@ -76,10 +74,6 @@ namespace ShowerRecoTools{
       throw art::Exception(art::errors::Configuration)
         << "Shower2DLinearRegressionTrackHitFinderEMShower: fNfithits and fToler need to have size fNfitpass";
     }
-  }
-
-  Shower2DLinearRegressionTrackHitFinder::~Shower2DLinearRegressionTrackHitFinder()
-  {
   }
 
   int Shower2DLinearRegressionTrackHitFinder::CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,

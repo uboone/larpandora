@@ -21,8 +21,6 @@ namespace ShowerRecoTools {
 
       ShowerTrackHitDirection(const fhicl::ParameterSet& pset);
 
-      ~ShowerTrackHitDirection();
-
       //Calculate the shower direction from the initial track hits.
       int CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
           art::Event& Event,
@@ -55,10 +53,6 @@ namespace ShowerRecoTools {
     fShowerStartPositionInputLabel(pset.get<std::string>("ShowerStartPositionInputLabel")),
     fInitialTrackInputLabel(pset.get<std::string>("InitialTrackInputLabel")),
     fShowerDirectionOutputLabel(pset.get<std::string>("ShowerDirectionOutputLabel"))
-  {
-  }
-
-  ShowerTrackHitDirection::~ShowerTrackHitDirection()
   {
   }
 

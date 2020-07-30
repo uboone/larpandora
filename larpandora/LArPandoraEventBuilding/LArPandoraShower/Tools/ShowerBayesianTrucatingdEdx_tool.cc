@@ -30,8 +30,6 @@ namespace ShowerRecoTools {
 
       ShowerBayesianTrucatingdEdx(const fhicl::ParameterSet& pset);
 
-      ~ShowerBayesianTrucatingdEdx();
-
       //Generic Direction Finder
       int CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
           art::Event& Event,
@@ -136,10 +134,6 @@ namespace ShowerRecoTools {
     electronpriorHist->Scale(1/electronpriorHist->Integral());
     photonpriorHist->Scale(1/photonpriorHist->Integral());
 
-  }
-
-  ShowerBayesianTrucatingdEdx::~ShowerBayesianTrucatingdEdx()
-  {
   }
 
   int ShowerBayesianTrucatingdEdx::CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,

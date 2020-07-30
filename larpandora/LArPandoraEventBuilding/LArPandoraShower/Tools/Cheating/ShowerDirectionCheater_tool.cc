@@ -21,8 +21,6 @@ namespace ShowerRecoTools {
 
       ShowerDirectionCheater(const fhicl::ParameterSet& pset);
 
-      ~ShowerDirectionCheater();
-
       //Generic Direction Finder
       int CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
           art::Event& Event,
@@ -75,10 +73,6 @@ namespace ShowerRecoTools {
       if (fVertexFlip) Tree->Branch("vertexDotProduct",&vertexDotProduct);
       if (fRMSFlip)    Tree->Branch("rmsGradient",&rmsGradient);
     }
-  }
-
-  ShowerDirectionCheater::~ShowerDirectionCheater()
-  {
   }
 
   int ShowerDirectionCheater::CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
