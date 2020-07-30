@@ -217,9 +217,10 @@ class reco::shower::ShowerElementHolder{
     //Getter function for accessing the shower property e..g the direction ShowerElementHolder.GetElement("MyShowerValue"); The name is used access the value and precise names are required for a complete shower in LArPandoraModularShowerCreation: ShowerStartPosition, ShowerDirection, ShowerEnergy ,ShowerdEdx.
     template <class T >
       int GetElement(std::string Name, T& Element){
-        if(showerproperties.find(Name) != showerproperties.end()){
-          if(showerproperties[Name]->CheckShowerElement()){
-            reco::shower::ShowerElementAccessor<T> *showerprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(showerproperties[Name].get());
+        auto const showerPropertiesIt = showerproperties.find(Name);
+        if(showerPropertiesIt != showerproperties.end()){
+          if(showerPropertiesIt->second->CheckShowerElement()){
+            reco::shower::ShowerElementAccessor<T> *showerprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(showerPropertiesIt->second.get());
             if(showerprop == nullptr){
               throw cet::exception("ShowerElementHolder") << "Trying to get Element: " << Name << ". This element you are filling is not the correct type" << std::endl;
             }
@@ -230,9 +231,12 @@ class reco::shower::ShowerElementHolder{
             mf::LogWarning("ShowerElementHolder") << "Trying to get Element " << Name << ". This elment has not been filled" << std::endl;
             return 1;
           }
-        } else if(showerdataproducts.find(Name) != showerdataproducts.end()){
-          if(showerdataproducts[Name]->CheckShowerElement()){
-            reco::shower::ShowerElementAccessor<T> *showerprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(showerdataproducts[Name].get());
+        }
+
+        auto const showerDataProductsIt = showerdataproducts.find(Name);
+        if(showerDataProductsIt != showerdataproducts.end()){
+          if(showerDataProductsIt->second->CheckShowerElement()){
+            reco::shower::ShowerElementAccessor<T> *showerprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(showerDataProductsIt->second.get());
             if(showerprop == nullptr){
               throw cet::exception("ShowerElementHolder") << "Trying to get Element: " << Name << ". This element you are filling is not the correct type" << std::endl;
             }
@@ -243,9 +247,12 @@ class reco::shower::ShowerElementHolder{
             mf::LogWarning("ShowerElementHolder") << "Trying to get Element " << Name << ". This elment has not been filled" << std::endl;
             return 1;
           }
-        } else if (eventdataproducts.find(Name) != eventdataproducts.end()){
-          if(eventdataproducts[Name]->CheckShowerElement()){
-            reco::shower::ShowerElementAccessor<T> *eventprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(eventdataproducts[Name].get());
+        }
+
+        auto const eventDataProductsIt = eventdataproducts.find(Name);
+        if (eventDataProductsIt != eventdataproducts.end()){
+          if(eventDataProductsIt->second->CheckShowerElement()){
+            reco::shower::ShowerElementAccessor<T> *eventprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(eventDataProductsIt->second.get());
             if(eventprop == nullptr){
               throw cet::exception("ShowerElementHolder") << "Trying to get Element: " << Name << ". This element you are filling is not the correct type" << std::endl;
             }
@@ -257,34 +264,34 @@ class reco::shower::ShowerElementHolder{
           }
         }
         throw cet::exception("ShowerElementHolder") << "Trying to get Element: " << Name << ". This element does not exist in the element holder" << std::endl;
-        return 1;
       }
 
     template <class T >
       int GetEventElement(std::string Name, T& Element){
-        if (eventdataproducts.find(Name) != eventdataproducts.end()){
-          if(eventdataproducts[Name]->CheckShowerElement()){
-            reco::shower::ShowerElementAccessor<T> *eventprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(eventdataproducts[Name].get());
+        auto const eventDataProductsIt = eventdataproducts.find(Name);
+        if (eventDataProductsIt != eventdataproducts.end()){
+          if(eventDataProductsIt->second->CheckShowerElement()){
+            reco::shower::ShowerElementAccessor<T> *eventprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(eventDataProductsIt->second.get());
             if(eventprop == nullptr){
               throw cet::exception("ShowerElementHolder") << "Trying to get Element: " << Name << ". This element you are filling is not the correct type" << std::endl;
             }
             eventprop->GetShowerElement(Element);
             return 0;
-          } else {
+          }else{
             mf::LogWarning("ShowerElementHolder") << "Trying to get Element " << Name << ". This elment has not been filled" << std::endl;
             return 1;
           }
         }
         throw cet::exception("ShowerElementHolder") << "Trying to get Element: " << Name << ". This element does not exist in the element holder" << std::endl;
-        return 1;
       }
 
     //Alternative get function that returns the object. Not recommended.
     template <class T >
       T& GetEventElement(std::string Name){
-        if (eventdataproducts.find(Name) != eventdataproducts.end()){
-          if(eventdataproducts[Name]->CheckShowerElement()){
-            reco::shower::ShowerElementAccessor<T> *eventprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(eventdataproducts[Name].get());
+        auto const eventDataProductsIt = eventdataproducts.find(Name);
+        if (eventDataProductsIt != eventdataproducts.end()){
+          if(eventDataProductsIt->second->CheckShowerElement()){
+            reco::shower::ShowerElementAccessor<T> *eventprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(eventDataProductsIt->second.get());
             if(eventprop == nullptr){
               throw cet::exception("ShowerElementHolder") << "Trying to get Element: " << Name << ". This element you are filling is not the correct type" << std::endl;
             }
@@ -297,26 +304,32 @@ class reco::shower::ShowerElementHolder{
     //Alternative get function that returns the object. Not recommended.
     template <class T >
       T GetElement(std::string Name){
-        if(showerproperties.find(Name) != showerproperties.end()){
-          if(showerproperties[Name]->CheckShowerElement()){
-            reco::shower::ShowerElementAccessor<T> *showerprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(showerproperties[Name].get());
+        auto const showerPropertiesIt = showerproperties.find(Name);
+        if(showerPropertiesIt != showerproperties.end()){
+          if(showerPropertiesIt->second->CheckShowerElement()){
+            reco::shower::ShowerElementAccessor<T> *showerprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(showerPropertiesIt->second.get());
             if(showerprop == nullptr){
               throw cet::exception("ShowerElementHolder") << "Trying to get Element: " << Name << ". This element you are filling is not the correct type" << std::endl;
             }
             return showerprop->GetShowerElement();
           }
         }
-        else if(showerdataproducts.find(Name) != showerdataproducts.end()){
-          if(showerdataproducts[Name]->CheckShowerElement()){
-            reco::shower::ShowerElementAccessor<T> *showerprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(showerdataproducts[Name].get());
+
+        auto const showerDataProductsIt = showerdataproducts.find(Name);
+        if(showerDataProductsIt != showerdataproducts.end()){
+          if(showerDataProductsIt->second->CheckShowerElement()){
+            reco::shower::ShowerElementAccessor<T> *showerprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(showerDataProductsIt->second.get());
             if(showerprop == nullptr){
               throw cet::exception("ShowerElementHolder") << "Trying to get Element: " << Name << ". This element you are filling is not the correct type" << std::endl;
             }
             return showerprop->GetShowerElement();
           }
-        } else if (eventdataproducts.find(Name) != eventdataproducts.end()){
-          if(eventdataproducts[Name]->CheckShowerElement()){
-            reco::shower::ShowerElementAccessor<T> *eventprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(eventdataproducts[Name].get());
+        }
+
+        auto const eventDataProductsIt = eventdataproducts.find(Name);
+        if (eventDataProductsIt != eventdataproducts.end()){
+          if(eventDataProductsIt->second->CheckShowerElement()){
+            reco::shower::ShowerElementAccessor<T> *eventprop = dynamic_cast<reco::shower::ShowerElementAccessor<T> *>(eventDataProductsIt->second.get());
             if(eventprop == nullptr){
               throw cet::exception("ShowerElementHolder") << "Trying to get Element: " << Name << ". This element you are filling is not the correct type" << std::endl;
             }
@@ -324,17 +337,17 @@ class reco::shower::ShowerElementHolder{
           }
         }
         throw cet::exception("ShowerElementHolder") << "Trying to get Element: " << Name << ". This element does not exist in the element holder" << std::endl;
-        return 1;
       }
 
     //Getter function for accessing the shower property error e.g the direction ShowerElementHolder.GetElement("MyShowerValue");
     template <class T, class T2>
       int GetElementAndError(std::string Name, T& Element,  T2& ElementErr){
-        if(showerproperties.find(Name) == showerproperties.end()){
+        auto const showerPropertiesIt = showerproperties.find(Name);
+        if(showerPropertiesIt != showerproperties.end()){
           mf::LogError("ShowerElementHolder") << "Trying to get Element Error: " << Name << ". This elment does not exist in the element holder" << std::endl;
           return 1;
         }
-        reco::shower::ShowerProperty<T,T2> *showerprop = dynamic_cast<reco::shower::ShowerProperty<T,T2> *>(showerproperties[Name].get());
+        reco::shower::ShowerProperty<T,T2> *showerprop = dynamic_cast<reco::shower::ShowerProperty<T,T2> *>(showerPropertiesIt->second.get());
         showerprop->GetShowerElement(Element);
         showerprop->GetShowerPropertyError(ElementErr);
         return 0;
@@ -346,14 +359,15 @@ class reco::shower::ShowerElementHolder{
     template <class T>
       void SetElement(T& dataproduct, std::string Name, bool checktag=false){
 
-        if(showerdataproducts.find(Name) != showerdataproducts.end()){
-          reco::shower::ShowerDataProduct<T>* showerdataprod = dynamic_cast<reco::shower::ShowerDataProduct<T> *>(showerdataproducts[Name].get());
+        auto const showerDataProductsIt = showerdataproducts.find(Name);
+        if(showerDataProductsIt != showerdataproducts.end()){
+          reco::shower::ShowerDataProduct<T>* showerdataprod = dynamic_cast<reco::shower::ShowerDataProduct<T> *>(showerDataProductsIt->second.get());
           showerdataprod->SetShowerElement(dataproduct);
           showerdataprod->SetCheckTag(checktag);
           return;
         }
         else{
-          showerdataproducts[Name] = std::unique_ptr<reco::shower::ShowerDataProduct<T> >(new reco::shower::ShowerDataProduct<T>(dataproduct,checktag));
+          showerdataproducts[Name] = std::make_unique<ShowerDataProduct<T> >(dataproduct,checktag);
           return;
         }
       }
@@ -363,13 +377,14 @@ class reco::shower::ShowerElementHolder{
     template <class T, class T2>
       void SetElement(T& propertyval, T2& propertyvalerror, std::string Name){
 
-        if(showerproperties.find(Name) != showerproperties.end()){
-          reco::shower::ShowerProperty<T,T2>* showerprop = dynamic_cast<reco::shower::ShowerProperty<T,T2> *>(showerproperties[Name].get());
+        auto const showerPropertiesIt = showerproperties.find(Name);
+        if(showerPropertiesIt != showerproperties.end()){
+          reco::shower::ShowerProperty<T,T2>* showerprop = dynamic_cast<reco::shower::ShowerProperty<T,T2> *>(showerPropertiesIt->second.get());
           showerprop->SetShowerProperty(propertyval,propertyvalerror);
           return;
         }
         else{
-          showerproperties[Name] = std::unique_ptr<reco::shower::ShowerProperty<T,T2> >(new reco::shower::ShowerProperty<T,T2>(propertyval,propertyvalerror));
+          showerproperties[Name] = std::make_unique<ShowerProperty<T,T2> >(propertyval,propertyvalerror);
           return;
         }
       }
@@ -379,33 +394,37 @@ class reco::shower::ShowerElementHolder{
     template <class T>
       void SetEventElement(T& dataproduct, std::string Name){
 
-        if(eventdataproducts.find(Name) != eventdataproducts.end()){
-          reco::shower::EventDataProduct<T>* eventdataprod = dynamic_cast<reco::shower::EventDataProduct<T> *>(eventdataproducts[Name].get());
+        auto const eventDataProductsIt = eventdataproducts.find(Name);
+        if (eventDataProductsIt != eventdataproducts.end()){
+          reco::shower::EventDataProduct<T>* eventdataprod = dynamic_cast<reco::shower::EventDataProduct<T> *>(eventDataProductsIt->second.get());
           eventdataprod->SetShowerElement(dataproduct);
           return;
         }
         else{
-          eventdataproducts[Name] = std::unique_ptr<reco::shower::EventDataProduct<T> >(new reco::shower::EventDataProduct<T>(dataproduct));
+          eventdataproducts[Name] = std::make_unique<EventDataProduct<T> >(dataproduct);
           return;
         }
       }
 
     bool CheckEventElement(std::string Name){
-      if(eventdataproducts.find(Name) != eventdataproducts.end()){
-        return eventdataproducts[Name]->CheckShowerElement();
-      }
-      return false;
+      auto const eventDataProductsIt = eventdataproducts.find(Name);
+      return eventDataProductsIt == eventdataproducts.end() ? false : eventDataProductsIt->second->CheckShowerElement();
     }
 
     //Check that a property is filled
     bool CheckElement(std::string Name){
-      if(showerproperties.find(Name) != showerproperties.end()){
-        return showerproperties[Name]->CheckShowerElement();
+      auto const showerPropertiesIt = showerproperties.find(Name);
+      if(showerPropertiesIt != showerproperties.end()){
+        return showerPropertiesIt->second->CheckShowerElement();
       }
-      if(showerdataproducts.find(Name) != showerdataproducts.end()){
-        return showerdataproducts[Name]->CheckShowerElement();
+      auto const showerDataProductsIt = showerdataproducts.find(Name);
+      if(showerDataProductsIt != showerdataproducts.end()){
+        return showerDataProductsIt->second->CheckShowerElement();
       }
-      CheckEventElement(Name);
+      auto const eventDataProductsIt = eventdataproducts.find(Name);
+      if(eventDataProductsIt!= eventdataproducts.end()){
+        return eventdataproducts[Name]->CheckShowerElement();
+      }
       return false;
     }
 
@@ -424,11 +443,13 @@ class reco::shower::ShowerElementHolder{
 
     //Clear Fucntion. This does not delete the element.
     void ClearElement(std::string Name){
-      if(showerproperties.find(Name) != showerproperties.end()){
-        return showerproperties[Name]->Clear();
+      auto const showerPropertiesIt = showerproperties.find(Name);
+      if(showerPropertiesIt != showerproperties.end()){
+        return showerPropertiesIt->second->Clear();
       }
-      if(showerdataproducts.find(Name) != showerdataproducts.end()){
-        return showerdataproducts[Name]->Clear();
+      auto const showerDataProductsIt = showerdataproducts.find(Name);
+      if(showerDataProductsIt != showerdataproducts.end()){
+        return showerDataProductsIt->second->Clear();
       }
       mf::LogError("ShowerElementHolder") << "Trying to clear Element: " << Name << ". This element does not exist in the element holder" << std::endl;
       return;
@@ -457,21 +478,22 @@ class reco::shower::ShowerElementHolder{
 
     //Find if the product is one what is being stored.
     bool CheckElementTag(std::string Name){
-      if(showerdataproducts.find(Name) != showerdataproducts.end()){
-        return showerdataproducts[Name]->CheckTag();
+      auto const showerDataProductsIt = showerdataproducts.find(Name);
+      if(showerDataProductsIt != showerdataproducts.end()){
+        return showerDataProductsIt->second->CheckTag();
       }
       return false;
     }
 
     //Delete a product. I see no reason for it.
     void DeleteElement(std::string Name){
-      if(showerdataproducts.find(Name) != showerdataproducts.end()){
-        showerdataproducts[Name].reset(nullptr);
-        return;
+      auto const showerPropertiesIt = showerproperties.find(Name);
+      if(showerPropertiesIt != showerproperties.end()){
+        return showerPropertiesIt->second.reset(nullptr);
       }
-      if(showerproperties.find(Name) != showerproperties.end()){
-        showerproperties[Name].reset(nullptr);
-        return;
+      auto const showerDataProductsIt = showerdataproducts.find(Name);
+      if(showerDataProductsIt != showerdataproducts.end()){
+        return showerDataProductsIt->second.reset(nullptr);
       }
       mf::LogError("ShowerElementHolder") << "Trying to delete Element: " << Name << ". This element does not exist in the element holder" << std::endl;
       return;
@@ -479,9 +501,9 @@ class reco::shower::ShowerElementHolder{
 
     //Set the indicator saying if the shower is going to be stored.
     void SetElementTag(std::string Name, bool checkelement){
-      if(showerdataproducts.find(Name) != showerdataproducts.end()){
-        showerdataproducts[Name]->SetCheckTag(checkelement);
-        return;
+      auto const showerDataProductsIt = showerdataproducts.find(Name);
+      if(showerDataProductsIt != showerdataproducts.end()){
+        return showerDataProductsIt->second->SetCheckTag(checkelement);
       }
       mf::LogError("ShowerElementHolder") << "Trying set the checking of the data product: " << Name << ". This data product does not exist in the element holder" << std::endl;
       return;
@@ -510,21 +532,6 @@ class reco::shower::ShowerElementHolder{
     //Get the shower number.
     int GetShowerNumber(){
       return showernumber;
-    }
-
-    void PrintElement(std::string Name){
-      if(showerdataproducts.find(Name) != showerdataproducts.end()){
-        std::string Type = showerdataproducts[Name]->GetType();
-        // std::cout << "Element Name: " << Name << " Type: " << Type << std::endl;
-        return;
-      }
-      if(showerproperties.find(Name) != showerproperties.end()){
-        std::string Type = showerproperties[Name]->GetType();
-        // std::cout << "Element Name: " << Name << " Type: " << Type << std::endl;
-        return;
-      }
-      mf::LogError("ShowerElementHolder") << "Trying to print Element: " << Name << ". This element does not exist in the element holder" << std::endl;
-      return;
     }
 
     //This function will print out all the elements and there types for the user to check.

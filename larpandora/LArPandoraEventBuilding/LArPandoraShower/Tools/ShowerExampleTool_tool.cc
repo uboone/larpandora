@@ -132,7 +132,6 @@ namespace ShowerRecoTools {
     PrintPtrs();
     PrintPtr("myvertex");
     ShowerEleHolder.PrintElements();
-    ShowerEleHolder.PrintElement("myvertex");
 
     //Remember to add make a new fcl parmas list for your new tool. For examles see showertools.fcl. And remember to add it the the list in the module fcl params list.
 
