@@ -1,5 +1,3 @@
-include_directories( $ENV{PANDORA_INC} )
-
 add_subdirectory(Cheating)
 
 art_make(TOOL_LIBRARIES

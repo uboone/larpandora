@@ -1,6 +1,3 @@
-include_directories( $ENV{PANDORA_INC} )
-include_directories( $ENV{LARPANDORACONTENT_INC} )
-
 add_subdirectory(Tools)
 add_subdirectory(Algs)
 
