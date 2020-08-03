@@ -343,7 +343,7 @@ class reco::shower::ShowerElementHolder{
     template <class T, class T2>
       int GetElementAndError(const std::string& Name, T& Element,  T2& ElementErr) const {
         auto const showerPropertiesIt = showerproperties.find(Name);
-        if(showerPropertiesIt != showerproperties.end()){
+        if(showerPropertiesIt == showerproperties.end()){
           mf::LogError("ShowerElementHolder") << "Trying to get Element Error: " << Name << ". This elment does not exist in the element holder" << std::endl;
           return 1;
         }
@@ -535,7 +535,7 @@ class reco::shower::ShowerElementHolder{
     }
 
     //This function will print out all the elements and there types for the user to check.
-    void PrintElements(){
+    void PrintElements() const {
 
       unsigned int maxname = 0;
       for(auto const& showerprop: showerproperties){
@@ -591,12 +591,12 @@ class reco::shower::ShowerElementHolder{
     }
 
     template <class T>
-      std::string getType(T object){
+      std::string getType(T object) const {
         return cet::demangle_symbol(typeid(object).name());
       }
 
     template <class T>
-      std::string getType(){
+      std::string getType() const {
         return cet::demangle_symbol(typeid(T).name());
       }
 

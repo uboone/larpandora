@@ -407,7 +407,7 @@ class reco::shower::ShowerProducedPtrsHolder {
     template <class T, class A, class B>
       void AddSingle(A& a, B& b, const std::string& Name){
         auto const showerassnPtrsIt = showerassnPtrs.find(Name);
-        if(showerassnPtrsIt != showerassnPtrs.end()){
+        if(showerassnPtrsIt == showerassnPtrs.end()){
           throw cet::exception("ShowerProducedPtrsHolder") << "Trying to get the association: " << Name << "Element does not exist" << std::endl;
         }
         if(!is_assn<T>::value){
