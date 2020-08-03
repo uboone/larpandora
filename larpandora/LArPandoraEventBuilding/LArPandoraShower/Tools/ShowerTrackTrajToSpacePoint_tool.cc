@@ -141,10 +141,7 @@ namespace ShowerRecoTools {
     auto const spHandle = Event.getValidHandle<std::vector<recob::SpacePoint> >(fPFParticleLabel);
 
     // Get the hits associated with the space points
-    art::FindOneP<recob::Hit> fohsp(spHandle, Event, fPFParticleLabel);
-    if(!fohsp.isValid()){
-      throw cet::exception("ShowerTrackTrajToSpacePoint") << "Spacepoint and hit association not valid. Stopping.";
-    }
+    const art::FindOneP<recob::Hit>& fohsp = ShowerEleHolder.GetFindOneP<recob::Hit>(spHandle, Event, fPFParticleLabel);
 
     //Save the corresponding hits
     std::vector<art::Ptr<recob::Hit> > trackHits;

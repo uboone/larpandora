@@ -32,7 +32,7 @@ namespace ShowerRecoTools {
 
     private:
 
-      TVector3 ShowerPCAVector(std::vector<art::Ptr<recob::SpacePoint> >& spacePoints_pfp, art::FindManyP<recob::Hit>& fmh, TVector3& ShowerCentre);
+      TVector3 ShowerPCAVector(std::vector<art::Ptr<recob::SpacePoint> >& spacePoints_pfp, const art::FindManyP<recob::Hit>& fmh, TVector3& ShowerCentre);
 
 
       //Services
@@ -84,11 +84,8 @@ namespace ShowerRecoTools {
     //Get the spacepoints handle and the hit assoication
     auto const spHandle = Event.getValidHandle<std::vector<recob::SpacePoint> >(fPFParticleLabel);
 
-    art::FindManyP<recob::Hit>& fmh = ShowerEleHolder.GetFindManyP<recob::Hit>(
+    const art::FindManyP<recob::Hit>& fmh = ShowerEleHolder.GetFindManyP<recob::Hit>(
         spHandle, Event, fPFParticleLabel);
-    if(!fmh.isValid()){
-      throw cet::exception("ShowerTrackPCA") << "Spacepoint and hit association not valid. Stopping.";
-    }
 
     std::vector<art::Ptr<recob::SpacePoint> > trackSpacePoints;
     ShowerEleHolder.GetElement(fInitialTrackSpacePointsInputLabel,trackSpacePoints);
@@ -130,7 +127,7 @@ namespace ShowerRecoTools {
 
 
   //Function to calculate the shower direction using a charge weight 3D PCA calculation.
-  TVector3 ShowerTrackPCADirection::ShowerPCAVector(std::vector<art::Ptr<recob::SpacePoint> >& sps, art::FindManyP<recob::Hit>& fmh, TVector3& ShowerCentre){
+  TVector3 ShowerTrackPCADirection::ShowerPCAVector(std::vector<art::Ptr<recob::SpacePoint> >& sps, const art::FindManyP<recob::Hit>& fmh, TVector3& ShowerCentre){
 
     //Initialise the the PCA.
     TPrincipal *pca = new TPrincipal(3,"");

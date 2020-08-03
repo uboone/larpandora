@@ -100,13 +100,13 @@ namespace ShowerRecoTools {
     //Get the clusters
     auto const clusHandle = Event.getValidHandle<std::vector<recob::Cluster> >(fPFParticleLabel);
 
-    art::FindManyP<recob::Cluster>& fmc = ShowerEleHolder.GetFindManyP<recob::Cluster>(
+    const art::FindManyP<recob::Cluster>& fmc = ShowerEleHolder.GetFindManyP<recob::Cluster>(
         pfpHandle, Event, fPFParticleLabel);
     // art::FindManyP<recob::Cluster> fmc(pfpHandle, Event, fPFParticleLabel);
     std::vector<art::Ptr<recob::Cluster> > clusters = fmc.at(pfparticle.key());
 
     //Get the hit association
-    art::FindManyP<recob::Hit>& fmhc = ShowerEleHolder.GetFindManyP<recob::Hit>(
+    const art::FindManyP<recob::Hit>& fmhc = ShowerEleHolder.GetFindManyP<recob::Hit>(
         clusHandle, Event, fPFParticleLabel);
     // art::FindManyP<recob::Hit> fmhc(clusHandle, Event, fPFParticleLabel);
 

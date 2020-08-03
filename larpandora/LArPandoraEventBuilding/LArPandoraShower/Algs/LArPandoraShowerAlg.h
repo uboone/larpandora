@@ -90,8 +90,8 @@ class shower::LArPandoraShowerAlg {
 
     void DebugEVD(art::Ptr<recob::PFParticle> const& pfparticle,
         art::Event const& Event,
-        reco::shower::ShowerElementHolder& ShowerEleHolder,
-        std::string evd_disp_name_append="") const;
+        const reco::shower::ShowerElementHolder& ShowerEleHolder,
+        std::string const& evd_disp_name_append="") const;
 
   private:
 
@@ -101,11 +101,10 @@ class shower::LArPandoraShowerAlg {
     art::ServiceHandle<geo::Geometry const> fGeom;
     art::ServiceHandle<art::TFileService>   tfs;
 
-    std::string fInitialTrackInputLabel;
-    std::string fShowerStartPositionInputLabel;
-    std::string fShowerDirectionInputLabel;
-    std::string fInitialTrackSpacePointsInputLabel;
-
+    const std::string fInitialTrackInputLabel;
+    const std::string fShowerStartPositionInputLabel;
+    const std::string fShowerDirectionInputLabel;
+    const std::string fInitialTrackSpacePointsInputLabel;
 };
 
 #endif

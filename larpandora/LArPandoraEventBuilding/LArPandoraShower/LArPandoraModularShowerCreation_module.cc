@@ -44,24 +44,25 @@ class reco::shower::LArPandoraModularShowerCreation: public art::EDProducer {
     //In the background it uses the PtrMaker which requires the element index of
     //the unique ptr (iter).
     template <class T >
-      art::Ptr<T> GetProducedElementPtr(std::string InstanceName, reco::shower::ShowerElementHolder& ShowerEleHolder, int iter=-1);
+      art::Ptr<T> GetProducedElementPtr(const std::string& InstanceName,
+          const reco::shower::ShowerElementHolder& ShowerEleHolder, const int& iter=-1);
 
 
     //fcl object names
-    art::InputTag fPFParticleLabel;
-    bool          fAllowPartialShowers;
-    int           fVerbose;
-    bool          fUseAllParticles;
-    unsigned int  fNumPlanes;
+    const unsigned int  fNumPlanes;
+    const art::InputTag fPFParticleLabel;
+    const bool          fAllowPartialShowers;
+    const int           fVerbose;
+    const bool          fUseAllParticles;
 
     //tool tags which calculate the characteristics of the shower
-    std::string fShowerStartPositionLabel;
-    std::string fShowerDirectionLabel;
-    std::string fShowerEnergyLabel;
-    std::string fShowerLengthLabel;
-    std::string fShowerOpeningAngleLabel;
-    std::string fShowerdEdxLabel;
-    std::string fShowerBestPlaneLabel;
+    const std::string fShowerStartPositionLabel;
+    const std::string fShowerDirectionLabel;
+    const std::string fShowerEnergyLabel;
+    const std::string fShowerLengthLabel;
+    const std::string fShowerOpeningAngleLabel;
+    const std::string fShowerdEdxLabel;
+    const std::string fShowerBestPlaneLabel;
 
     //fcl tools
     std::vector<std::unique_ptr<ShowerRecoTools::IShowerTool> > fShowerTools;
@@ -79,7 +80,7 @@ class reco::shower::LArPandoraModularShowerCreation: public art::EDProducer {
 //the unique ptr (iter).
 template <class T >
 art::Ptr<T> reco::shower::LArPandoraModularShowerCreation::GetProducedElementPtr(
-    std::string InstanceName, reco::shower::ShowerElementHolder& ShowerEleHolder, int iter){
+    const std::string& InstanceName, const reco::shower::ShowerElementHolder& ShowerEleHolder, const int& iter){
 
   bool check_element = ShowerEleHolder.CheckElement(InstanceName);
   if(!check_element){
@@ -109,6 +110,7 @@ art::Ptr<T> reco::shower::LArPandoraModularShowerCreation::GetProducedElementPtr
 
 reco::shower::LArPandoraModularShowerCreation::LArPandoraModularShowerCreation(fhicl::ParameterSet const& pset) :
   EDProducer{pset},
+  fNumPlanes(fGeom->Nplanes()),
   fPFParticleLabel(pset.get<art::InputTag>("PFParticleLabel")),
   fAllowPartialShowers(pset.get<bool>("AllowPartialShowers")),
   fVerbose(pset.get<int>("Verbose", 0)),
@@ -125,13 +127,13 @@ reco::shower::LArPandoraModularShowerCreation::LArPandoraModularShowerCreation(f
   auto tool_psets = pset.get<std::vector<fhicl::ParameterSet>>("ShowerFinderTools");
   for (auto& tool_pset : tool_psets) {
 
-    std::string tool_name = tool_pset.get<std::string>("tool_type");
+    const std::string tool_name(tool_pset.get<std::string>("tool_type"));
     // If the PFPaticle label is not set for the tool, make it use the one for the module
     // Note we also need to set the label in the Alg, via the base tool
     if (!tool_pset.has_key("PFParticleLabel")){
 
       // I cannot pass an art::InputTag as it is mangled, so lets make a string instead
-      std::string PFParticleLabelString(fPFParticleLabel.label()+":"+fPFParticleLabel.instance()
+      const std::string PFParticleLabelString(fPFParticleLabel.label()+":"+fPFParticleLabel.instance()
           +":"+fPFParticleLabel.process());
 
       tool_pset.put<std::string>("PFParticleLabel", PFParticleLabelString);
@@ -167,8 +169,6 @@ reco::shower::LArPandoraModularShowerCreation::LArPandoraModularShowerCreation(f
     fShowerTools[i]->InitialiseProducers();
   }
 
-  fNumPlanes = fGeom->Nplanes();
-
   //Initialise the other paramters.
 
   produces<std::vector<recob::Shower> >();
@@ -202,28 +202,12 @@ void reco::shower::LArPandoraModularShowerCreation::produce(art::Event& evt) {
   auto const clusterHandle = evt.getValidHandle<std::vector<recob::Cluster> >(fPFParticleLabel);
 
   //Get the assoications to hits, clusters and spacespoints
-  art::FindManyP<recob::Hit> fmh = showerEleHolder.GetFindManyP<recob::Hit>(
+  const art::FindManyP<recob::Hit>& fmh = showerEleHolder.GetFindManyP<recob::Hit>(
       clusterHandle, evt, fPFParticleLabel);
-  art::FindManyP<recob::Cluster> fmcp = showerEleHolder.GetFindManyP<recob::Cluster>(
+  const art::FindManyP<recob::Cluster>& fmcp = showerEleHolder.GetFindManyP<recob::Cluster>(
       pfpHandle, evt, fPFParticleLabel);
-  art::FindManyP<recob::SpacePoint> fmspp = showerEleHolder.GetFindManyP<recob::SpacePoint>(
+  const art::FindManyP<recob::SpacePoint>& fmspp = showerEleHolder.GetFindManyP<recob::SpacePoint>(
       pfpHandle, evt, fPFParticleLabel);
-  // art::FindManyP<recob::Hit> fmh(clusterHandle, evt, fPFParticleLabel);
-  // art::FindManyP<recob::Cluster> fmcp(pfpHandle, evt, fPFParticleLabel);
-  // art::FindManyP<recob::SpacePoint> fmspp(pfpHandle, evt, fPFParticleLabel);
-
-  if(!fmcp.isValid()){
-    throw cet::exception("LArPandoraModularShowerCreation")
-      << "Find many clusters is not valid." << std::endl;
-  }
-  if(!fmh.isValid()){
-    throw cet::exception("LArPandoraModularShowerCreation")
-      << "Find many hits is not valid." << std::endl;
-  }
-  if(!fmspp.isValid()){
-    throw cet::exception("LArPandoraModularShowerCreation")
-      << "Find many spacepoints is not valid." << std::endl;
-  }
 
   //Holder to pass to the functions, contains the 6 properties of the shower
   // - Start Poistion
@@ -247,8 +231,8 @@ void reco::shower::LArPandoraModularShowerCreation::produce(art::Event& evt) {
       continue;
 
     //Get the associated hits,clusters and spacepoints
-    std::vector<art::Ptr<recob::Cluster> >    showerClusters    = fmcp.at(pfp.key());
-    std::vector<art::Ptr<recob::SpacePoint> > showerSpacePoints = fmspp.at(pfp.key());
+    const std::vector<art::Ptr<recob::Cluster> >    showerClusters    = fmcp.at(pfp.key());
+    const std::vector<art::Ptr<recob::SpacePoint> > showerSpacePoints = fmspp.at(pfp.key());
 
     // Check the pfp has at least 1 cluster (i.e. not a pfp neutrino)
     if (!showerClusters.size())
@@ -409,7 +393,7 @@ void reco::shower::LArPandoraModularShowerCreation::produce(art::Event& evt) {
     }
 
     //Make the shower
-    recob::Shower shower = recob::Shower(ShowerDirection, ShowerDirectionErr, ShowerStartPosition, ShowerDirectionErr,
+    recob::Shower shower(ShowerDirection, ShowerDirectionErr, ShowerStartPosition, ShowerDirectionErr,
         ShowerEnergy, ShowerEnergyErr, ShowerdEdx, ShowerdEdxErr, BestPlane, util::kBogusI, ShowerLength, ShowerOpeningAngle);
     showerEleHolder.SetElement(shower,"shower");
     ++shower_iter;

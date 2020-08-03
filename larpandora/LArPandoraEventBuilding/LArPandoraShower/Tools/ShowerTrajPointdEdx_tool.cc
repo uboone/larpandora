@@ -129,11 +129,8 @@ namespace ShowerRecoTools{
     auto const spHandle = Event.getValidHandle<std::vector<recob::SpacePoint> >(fPFParticleLabel);
 
     // Get the hits associated with the space points
-    art::FindManyP<recob::Hit>& fmsp = ShowerEleHolder.GetFindManyP<recob::Hit>(
+    const art::FindManyP<recob::Hit>& fmsp = ShowerEleHolder.GetFindManyP<recob::Hit>(
         spHandle, Event, fPFParticleLabel);
-    if(!fmsp.isValid()){
-      throw cet::exception("ShowerTrajPointdEdx") << "Spacepoint and hit association not valid. Stopping.";
-    }
 
     //Only consider hits in the same tpcs as the vertex.
     TVector3 ShowerStartPosition = {-999,-999,-999};

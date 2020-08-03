@@ -35,7 +35,7 @@ namespace ShowerRecoTools {
 
       std::vector<art::Ptr<recob::SpacePoint> > RunIncrementalSpacePointFinder(
           std::vector< art::Ptr< recob::SpacePoint> > const& sps,
-          art::FindManyP<recob::Hit> & fmh);
+          const art::FindManyP<recob::Hit> & fmh);
 
       void PruneFrontOfSPSPool(
           std::vector<art::Ptr<recob::SpacePoint> > & sps_pool,
@@ -52,20 +52,20 @@ namespace ShowerRecoTools {
 
       bool IncrementallyFitSegment(std::vector<art::Ptr<recob::SpacePoint> > & segment,
           std::vector<art::Ptr< recob::SpacePoint> > & sps_pool,
-          art::FindManyP<recob::Hit>  & fmh,
+          const art::FindManyP<recob::Hit>  & fmh,
           double current_residual);
 
       double FitSegmentAndCalculateResidual(std::vector<art::Ptr<recob::SpacePoint> > & segment,
-          art::FindManyP<recob::Hit> & fmh);
+          const art::FindManyP<recob::Hit> & fmh);
 
       double FitSegmentAndCalculateResidual(std::vector<art::Ptr<recob::SpacePoint> > & segment,
-          art::FindManyP<recob::Hit> & fmh,
+          const art::FindManyP<recob::Hit> & fmh,
           int& max_residual_point);
 
 
       bool RecursivelyReplaceLastSpacePointAndRefit(std::vector<art::Ptr<recob::SpacePoint> > & segment,
           std::vector<art::Ptr< recob::SpacePoint> > & reduced_sps_pool,
-          art::FindManyP<recob::Hit>  & fmh,
+          const art::FindManyP<recob::Hit>  & fmh,
           double current_residual);
 
       bool IsResidualOK(double new_residual, double current_residual) { return new_residual - current_residual < fMaxResidualDiff; };
@@ -82,16 +82,16 @@ namespace ShowerRecoTools {
           int& max_residual_point);
 
       TVector3 ShowerPCAVector(std::vector<art::Ptr<recob::SpacePoint> >& sps,
-          art::FindManyP<recob::Hit>& fmh);
+          const art::FindManyP<recob::Hit>& fmh);
 
       TVector3 ShowerPCAVector(std::vector<art::Ptr<recob::SpacePoint> >& sps);
 
       std::vector<art::Ptr<recob::SpacePoint> > CreateFakeShowerTrajectory(TVector3 start_position, TVector3 start_direction);
       std::vector<art::Ptr<recob::SpacePoint> > CreateFakeSPLine(TVector3 start_position, TVector3 start_direction, int npoints);
-      void RunTestOfIncrementalSpacePointFinder(art::FindManyP<recob::Hit>& dud_fmh);
+      void RunTestOfIncrementalSpacePointFinder(const art::FindManyP<recob::Hit>& dud_fmh);
 
       void MakeTrackSeed(std::vector< art::Ptr< recob::SpacePoint> >& segment,
-          art::FindManyP<recob::Hit> & fmh);
+          const art::FindManyP<recob::Hit> & fmh);
 
 
       //Services
@@ -160,21 +160,15 @@ namespace ShowerRecoTools {
     auto const pfpHandle = Event.getValidHandle<std::vector<recob::PFParticle> >(fPFParticleLabel);
 
     // Get the spacepoint - PFParticle assn
-    art::FindManyP<recob::SpacePoint>& fmspp = ShowerEleHolder.GetFindManyP<recob::SpacePoint>(
+    const art::FindManyP<recob::SpacePoint>& fmspp = ShowerEleHolder.GetFindManyP<recob::SpacePoint>(
         pfpHandle, Event, fPFParticleLabel);
-    if (!fmspp.isValid()){
-      throw cet::exception("ShowerIncrementalTrackHitFinder") << "Trying to get the spacepoint and failed. Something is not configured correctly. Stopping ";
-    }
 
     // Get the spacepoints
     auto const spHandle = Event.getValidHandle<std::vector<recob::SpacePoint> >(fPFParticleLabel);
 
     // Get the hits associated with the space points
-    art::FindManyP<recob::Hit>& fmh = ShowerEleHolder.GetFindManyP<recob::Hit>(
+    const art::FindManyP<recob::Hit>& fmh = ShowerEleHolder.GetFindManyP<recob::Hit>(
         spHandle, Event, fPFParticleLabel);
-    if(!fmh.isValid()){
-      throw cet::exception("ShowerIncrementalTrackHitFinder") << "Spacepoint and hit association not valid. Stopping.";
-    }
 
     // Get the SpacePoints
     std::vector<art::Ptr<recob::SpacePoint> > spacePoints = fmspp.at(pfparticle.key());
@@ -334,7 +328,7 @@ namespace ShowerRecoTools {
 
 
   //Function to calculate the shower direction using a charge weight 3D PCA calculation.
-  TVector3 ShowerIncrementalTrackHitFinder::ShowerPCAVector(std::vector<art::Ptr<recob::SpacePoint> >& sps, art::FindManyP<recob::Hit>& fmh){
+  TVector3 ShowerIncrementalTrackHitFinder::ShowerPCAVector(std::vector<art::Ptr<recob::SpacePoint> >& sps, const art::FindManyP<recob::Hit>& fmh){
 
     //Initialise the the PCA.
     TPrincipal *pca = new TPrincipal(3,"");
@@ -390,7 +384,7 @@ namespace ShowerRecoTools {
   //Function to remove the spacepoint with the highest residual until we have a track which matches the
   //residual criteria.
   void ShowerIncrementalTrackHitFinder::MakeTrackSeed(std::vector< art::Ptr< recob::SpacePoint> >& segment,
-      art::FindManyP<recob::Hit> & fmh){
+      const art::FindManyP<recob::Hit> & fmh){
 
     bool ok=true;
 
@@ -424,7 +418,7 @@ namespace ShowerRecoTools {
 
   std::vector<art::Ptr<recob::SpacePoint> > ShowerIncrementalTrackHitFinder::RunIncrementalSpacePointFinder(
       std::vector< art::Ptr< recob::SpacePoint> > const& sps,
-      art::FindManyP<recob::Hit> & fmh){
+      const art::FindManyP<recob::Hit> & fmh){
 
     //Create space point pool (yes we are copying the input vector because we're going to twiddle with it
     std::vector<art::Ptr<recob::SpacePoint> > sps_pool = sps;
@@ -540,7 +534,7 @@ namespace ShowerRecoTools {
 
   bool ShowerIncrementalTrackHitFinder::IncrementallyFitSegment(std::vector<art::Ptr<recob::SpacePoint> > & segment,
       std::vector<art::Ptr< recob::SpacePoint> > & sps_pool,
-      art::FindManyP<recob::Hit> & fmh,
+      const art::FindManyP<recob::Hit> & fmh,
       double current_residual){
     bool ok = true;
     //Firstly, are there any space points left???
@@ -599,7 +593,7 @@ namespace ShowerRecoTools {
   }
 
   double ShowerIncrementalTrackHitFinder::FitSegmentAndCalculateResidual(std::vector<art::Ptr<recob::SpacePoint> > & segment,
-      art::FindManyP<recob::Hit> & fmh){
+      const art::FindManyP<recob::Hit> & fmh){
     TVector3 primary_axis;
     if (fChargeWeighted) primary_axis = ShowerPCAVector(segment,fmh);
     else primary_axis = ShowerPCAVector(segment);
@@ -614,7 +608,7 @@ namespace ShowerRecoTools {
   }
 
   double ShowerIncrementalTrackHitFinder::FitSegmentAndCalculateResidual(std::vector<art::Ptr<recob::SpacePoint> > & segment,
-      art::FindManyP<recob::Hit> & fmh,
+      const art::FindManyP<recob::Hit> & fmh,
       int& max_residual_point){
     TVector3 primary_axis;
     if (fChargeWeighted) primary_axis = ShowerPCAVector(segment,fmh);
@@ -633,7 +627,7 @@ namespace ShowerRecoTools {
 
   bool ShowerIncrementalTrackHitFinder::RecursivelyReplaceLastSpacePointAndRefit(std::vector<art::Ptr<recob::SpacePoint> > & segment,
       std::vector<art::Ptr< recob::SpacePoint> > & reduced_sps_pool,
-      art::FindManyP<recob::Hit>  & fmh,
+      const art::FindManyP<recob::Hit>  & fmh,
       double current_residual){
     bool ok = true;
     //If the pool is empty, then there is nothing to do (sad)
@@ -746,7 +740,7 @@ namespace ShowerRecoTools {
     return fake_sps;
   }
 
-  void ShowerIncrementalTrackHitFinder::RunTestOfIncrementalSpacePointFinder(art::FindManyP<recob::Hit>& dud_fmh){
+  void ShowerIncrementalTrackHitFinder::RunTestOfIncrementalSpacePointFinder(const art::FindManyP<recob::Hit>& dud_fmh){
     TVector3 start_position(50,50,50);
     TVector3 start_direction(0,0,1);
     std::vector<art::Ptr<recob::SpacePoint> > fake_sps = CreateFakeShowerTrajectory(start_position,start_direction);

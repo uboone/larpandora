@@ -69,14 +69,8 @@ namespace ShowerRecoTools {
     auto const pfpHandle = Event.getValidHandle<std::vector<recob::PFParticle> >(fPFParticleLabel);
 
     // Get the spacepoint - PFParticle assn
-    art::FindManyP<recob::SpacePoint>& fmspp = ShowerEleHolder.GetFindManyP<recob::SpacePoint>(
+    const art::FindManyP<recob::SpacePoint>& fmspp = ShowerEleHolder.GetFindManyP<recob::SpacePoint>(
         pfpHandle, Event, fPFParticleLabel);
-    if (!fmspp.isValid()){
-      throw cet::exception("ShowerLengthPercentile") << "Trying to get the spacepoint and failed. Something is not configured correctly. Stopping ";
-    }
-
-    // Get the spacepoints
-    auto const spHandle = Event.getValidHandle<std::vector<recob::SpacePoint> >(fPFParticleLabel);
 
     // Get the SpacePoints
     std::vector<art::Ptr<recob::SpacePoint> > spacePoints = fmspp.at(pfparticle.key());

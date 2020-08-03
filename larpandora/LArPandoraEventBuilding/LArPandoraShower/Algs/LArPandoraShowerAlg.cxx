@@ -366,8 +366,8 @@ double shower::LArPandoraShowerAlg::SpacePointPerpendicular(art::Ptr<recob::Spac
 
 void shower::LArPandoraShowerAlg::DebugEVD(art::Ptr<recob::PFParticle> const& pfparticle,
     art::Event const& Event,
-    reco::shower::ShowerElementHolder& ShowerEleHolder,
-    std::string evd_disp_name_append) const {
+    reco::shower::ShowerElementHolder const& ShowerEleHolder,
+    std::string const& evd_disp_name_append) const {
 
   std::cout<<"Making Debug Event Display"<<std::endl;
 

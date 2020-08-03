@@ -41,7 +41,7 @@ namespace ShowerRecoTools {
 
       // Define standard art tool interface
       recob::PCAxis CalculateShowerPCA(std::vector<art::Ptr<recob::SpacePoint> >& spacePoints_pfp,
-          art::FindManyP<recob::Hit>& fmh, TVector3& ShowerCentre);
+          const art::FindManyP<recob::Hit>& fmh, TVector3& ShowerCentre);
 
       TVector3 GetPCAxisVector(recob::PCAxis& PCAxis);
 
@@ -98,23 +98,14 @@ namespace ShowerRecoTools {
     // Get the assocated pfParicle vertex PFParticles
     auto const pfpHandle = Event.getValidHandle<std::vector<recob::PFParticle> >(fPFParticleLabel);
 
-    art::FindManyP<recob::SpacePoint>& fmspp = ShowerEleHolder.GetFindManyP<recob::SpacePoint>(
+    const art::FindManyP<recob::SpacePoint>& fmspp = ShowerEleHolder.GetFindManyP<recob::SpacePoint>(
         pfpHandle, Event, fPFParticleLabel);
-    // art::FindManyP<recob::SpacePoint> fmspp(pfpHandle, Event, fPFParticleLabel);
-
-    if (!fmspp.isValid()){
-      throw cet::exception("ShowerPCADirection") << "Trying to get the spacepoint and failed. Something is not configured correctly. Stopping ";
-    }
 
     //Get the spacepoints handle and the hit assoication
     auto const spHandle = Event.getValidHandle<std::vector<recob::SpacePoint> >(fPFParticleLabel);
 
-    art::FindManyP<recob::Hit>& fmh = ShowerEleHolder.GetFindManyP<recob::Hit>(
+    const art::FindManyP<recob::Hit>& fmh = ShowerEleHolder.GetFindManyP<recob::Hit>(
         spHandle, Event, fPFParticleLabel);
-    // art::FindManyP<recob::Hit> fmh(spHandle, Event, fPFParticleLabel);
-    if(!fmh.isValid()){
-      throw cet::exception("ShowerPCADirection") << "Spacepoint and hit association not valid. Stopping.";
-    }
 
     //Spacepoints
     std::vector<art::Ptr<recob::SpacePoint> > spacePoints_pfp = fmspp.at(pfparticle.key());
@@ -240,7 +231,7 @@ namespace ShowerRecoTools {
 
 
   //Function to calculate the shower direction using a charge weight 3D PCA calculation.
-  recob::PCAxis ShowerPCADirection::CalculateShowerPCA(std::vector<art::Ptr<recob::SpacePoint> >& sps, art::FindManyP<recob::Hit>& fmh, TVector3& ShowerCentre){
+  recob::PCAxis ShowerPCADirection::CalculateShowerPCA(std::vector<art::Ptr<recob::SpacePoint> >& sps, const art::FindManyP<recob::Hit>& fmh, TVector3& ShowerCentre){
 
     float TotalCharge = 0;
     float sumWeights = 0;

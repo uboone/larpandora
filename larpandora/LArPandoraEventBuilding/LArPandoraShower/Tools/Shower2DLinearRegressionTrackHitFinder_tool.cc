@@ -105,7 +105,7 @@ namespace ShowerRecoTools{
     //Get the clusters
     auto const clusHandle = Event.getValidHandle<std::vector<recob::Cluster> >(fPFParticleLabel);
 
-    art::FindManyP<recob::Cluster>& fmc = ShowerEleHolder.GetFindManyP<recob::Cluster>
+    const art::FindManyP<recob::Cluster>& fmc = ShowerEleHolder.GetFindManyP<recob::Cluster>
       (pfpHandle, Event, fPFParticleLabel);
     std::vector<art::Ptr<recob::Cluster> > clusters = fmc.at(pfparticle.key());
 
@@ -117,7 +117,7 @@ namespace ShowerRecoTools{
     }
 
     //Get the hit association
-    art::FindManyP<recob::Hit> fmhc = ShowerEleHolder.GetFindManyP<recob::Hit>
+    const art::FindManyP<recob::Hit>& fmhc = ShowerEleHolder.GetFindManyP<recob::Hit>
       (clusHandle, Event, fPFParticleLabel);
     std::map<geo::PlaneID, std::vector<art::Ptr<recob::Hit> > > plane_clusters;
     //Loop over the clusters in the plane and get the hits
@@ -161,12 +161,8 @@ namespace ShowerRecoTools{
     auto const hitHandle = Event.getValidHandle<std::vector<recob::Hit> >(fHitLabel);
 
     //get the sp<->hit association
-    art::FindManyP<recob::SpacePoint> fmsp = ShowerEleHolder.GetFindManyP<recob::SpacePoint>
+    const art::FindManyP<recob::SpacePoint>& fmsp = ShowerEleHolder.GetFindManyP<recob::SpacePoint>
       (hitHandle,Event,fPFParticleLabel);
-    if(!fmsp.isValid()){
-      throw cet::exception("Shower2DLinearRegressionTrackHitFinder")
-        << "Spacepoint and hit association not valid. Stopping." << std::endl;
-    }
 
     //Get the spacepoints associated to the track hit
     std::vector<art::Ptr<recob::SpacePoint > > intitaltrack_sp;
