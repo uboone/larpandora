@@ -54,8 +54,7 @@ namespace lar_pandora {
     const pandora::Pandora* pPandora(settings.m_pPrimaryPandora);
 
     art::ServiceHandle<geo::Geometry const> theGeometry;
-    auto const detProp =
-      art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(e);
+    auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(e);
     const bool isDualPhase(theGeometry->MaxPlanes() == 2);
 
     // Loop over ART hits
@@ -823,8 +822,7 @@ namespace lar_pandora {
                              const int nt)
   {
     art::ServiceHandle<geo::Geometry const> theGeometry;
-    auto const clock_data =
-      art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(e);
+    auto const clock_data = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(e);
     auto const det_prop =
       art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(e, clock_data);
 

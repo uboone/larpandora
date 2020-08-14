@@ -649,8 +649,7 @@ namespace lar_pandora {
     auto const clock_data =
       art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(event);
     auto const det_prop =
-      art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(event,
-                                                                                   clock_data);
+      art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(event, clock_data);
     util::GeometryUtilities const gser{*geom, clock_data, det_prop};
 
     // Produce the art clusters
@@ -1194,8 +1193,7 @@ namespace lar_pandora {
     const float x0(pParent->GetPropertiesMap().count("X0") ? pParent->GetPropertiesMap().at("X0") :
                                                              0.f);
 
-    auto const clock_data =
-      art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(e);
+    auto const clock_data = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(e);
     auto const det_prop =
       art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(e, clock_data);
     const double cm_per_tick(det_prop.GetXTicksCoefficient());

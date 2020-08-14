@@ -633,8 +633,7 @@ namespace lar_pandora {
     if (hitVector.empty()) { m_pReco2D->Fill(); }
 
     // Need DetectorProperties service to convert from ticks to X
-    auto const detProp =
-      art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(e);
+    auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(e);
 
     // Loop over 2D hits
     for (unsigned int i = 0; i < hitVector.size(); ++i) {
@@ -677,8 +676,7 @@ namespace lar_pandora {
     art::ServiceHandle<geo::Geometry const> theGeometry;
 
     // Need DetectorProperties service to convert from ticks to X
-    auto const detProp =
-      art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(e);
+    auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(e);
 
     // Loop over wires
     int signalCounter(0);
