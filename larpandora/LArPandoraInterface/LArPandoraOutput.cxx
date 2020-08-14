@@ -4,8 +4,6 @@
  *  @brief  Helper functions for processing outputs from pandora
  *
  */
-
-#include "art/Framework/Core/EDProducer.h"
 #include "cetlib_except/exception.h"
 #include "messagefacility/MessageLogger/MessageLogger.h"
 
@@ -762,8 +760,11 @@ namespace lar_pandora {
     for (unsigned int pfoId = 0; pfoId < pfoVector.size(); ++pfoId) {
       const pandora::ParticleFlowObject* const pPfo(pfoVector.at(pfoId));
 
-      LArPandoraOutput::AddAssociation(
-        event, instanceLabel, pfoId, outputParticleMetadata->size(), outputParticlesToMetadata);
+      LArPandoraOutput::AddAssociation(event,
+                                       instanceLabel,
+                                       pfoId,
+                                       outputParticleMetadata->size(),
+                                       outputParticlesToMetadata);
       larpandoraobj::PFParticleMetadata pPFParticleMetadata(
         LArPandoraHelper::GetPFParticleMetadata(pPfo));
       outputParticleMetadata->push_back(pPFParticleMetadata);

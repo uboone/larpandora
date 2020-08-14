@@ -66,6 +66,11 @@ namespace lar_pandora {
      */
     float GetZ2() const;
 
+    /**
+     *  @brief Get maximum gap size
+     */
+    static float GetMaxGapSize() noexcept;
+
   private:
     float m_x1;
     float m_y1;
@@ -407,6 +412,14 @@ namespace lar_pandora {
   LArDetectorGap::GetZ2() const
   {
     return m_z2;
+  }
+
+  //------------------------------------------------------------------------------------------------------------------------------------------
+
+  inline float
+  LArDetectorGap::GetMaxGapSize() noexcept
+  {
+    return 30.f; // TODO: 30cm should be fine but can we do better than a hard-coded number here?
   }
 
   //------------------------------------------------------------------------------------------------------------------------------------------

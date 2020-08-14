@@ -30,6 +30,10 @@ namespace lar_pandora {
     LArDriftVolumeList driftVolumeList;
     LArPandoraGeometry::LoadGeometry(driftVolumeList);
 
+    // ATTN: Expectations here are that the input geometry corresponds to either a single or dual phase LArTPC.
+    art::ServiceHandle<geo::Geometry const> theGeometry;
+    const bool isDualPhase(theGeometry->MaxPlanes() == 2);
+
     for (LArDriftVolumeList::const_iterator iter1 = driftVolumeList.begin(),
                                             iterEnd1 = driftVolumeList.end();
          iter1 != iterEnd1;
@@ -43,16 +47,22 @@ namespace lar_pandora {
 
         if (driftVolume1.GetVolumeID() == driftVolume2.GetVolumeID()) continue;
 
-        const float maxDisplacement(
-          30.f); // TODO: 30cm should be fine, but can we do better than a hard-coded number here?
-        const float deltaZ(std::fabs(driftVolume1.GetCenterZ() - driftVolume2.GetCenterZ()));
-        const float deltaY(std::fabs(driftVolume1.GetCenterY() - driftVolume2.GetCenterY()));
-        const float deltaX(std::fabs(driftVolume1.GetCenterX() - driftVolume2.GetCenterX()));
-        const float widthX(0.5f * (driftVolume1.GetWidthX() + driftVolume2.GetWidthX()));
-        const float gapX(deltaX - widthX);
+        const float maxDisplacement(LArDetectorGap::GetMaxGapSize());
 
-        if (gapX < 0.f || gapX > maxDisplacement || deltaY > maxDisplacement ||
-            deltaZ > maxDisplacement)
+        const float deltaX(std::fabs(driftVolume1.GetCenterX() - driftVolume2.GetCenterX()));
+        const float deltaY(std::fabs(driftVolume1.GetCenterY() - driftVolume2.GetCenterY()));
+        const float deltaZ(std::fabs(driftVolume1.GetCenterZ() - driftVolume2.GetCenterZ()));
+
+        const float widthX(0.5f * (driftVolume1.GetWidthX() + driftVolume2.GetWidthX()));
+        const float widthY(0.5f * (driftVolume1.GetWidthY() + driftVolume2.GetWidthY()));
+        const float widthZ(0.5f * (driftVolume1.GetWidthZ() + driftVolume2.GetWidthZ()));
+
+        const float gapX(deltaX - widthX);
+        const float gapY(deltaY - widthY);
+        const float gapZ(deltaZ - widthZ);
+
+        if (!isDualPhase && (gapX < 0.f || gapX > maxDisplacement || deltaY > maxDisplacement ||
+                             deltaZ > maxDisplacement))
           continue;
 
         const float X1((driftVolume1.GetCenterX() < driftVolume2.GetCenterX()) ?
@@ -70,7 +80,12 @@ namespace lar_pandora {
         const float Z2(std::max((driftVolume1.GetCenterZ() + 0.5f * driftVolume1.GetWidthZ()),
                                 (driftVolume2.GetCenterZ() + 0.5f * driftVolume2.GetWidthZ())));
 
-        listOfGaps.push_back(LArDetectorGap(X1, Y1, Z1, X2, Y2, Z2));
+        if (isDualPhase && (std::fabs(gapY) > maxDisplacement || std::fabs(gapZ) > maxDisplacement))
+          listOfGaps.emplace_back(
+            LArDetectorGap(X1, Y1 + widthY, Z1 + widthZ, X2, Y2 - widthY, Z2 - widthZ));
+
+        else if (!isDualPhase)
+          listOfGaps.emplace_back(LArDetectorGap(X1, Y1, Z1, X2, Y2, Z2));
       }
     }
   }
@@ -329,44 +344,45 @@ namespace lar_pandora {
           cstatList.insert(itpc2);
           tpcList.insert(itpc2);
 
-          driftMinX =
-            std::min(driftMinX, static_cast<float>(worldCoord2[0] - theTpc2.ActiveHalfWidth()));
-          driftMaxX =
-            std::max(driftMaxX, static_cast<float>(worldCoord2[0] + theTpc2.ActiveHalfWidth()));
-          driftMinY =
-            std::min(driftMinY, static_cast<float>(worldCoord2[1] - theTpc2.ActiveHalfHeight()));
-          driftMaxY =
-            std::max(driftMaxY, static_cast<float>(worldCoord2[1] + theTpc2.ActiveHalfHeight()));
-          driftMinZ =
-            std::min(driftMinZ, static_cast<float>(worldCoord2[2] - 0.5f * theTpc2.ActiveLength()));
-          driftMaxZ =
-            std::max(driftMaxZ, static_cast<float>(worldCoord2[2] + 0.5f * theTpc2.ActiveLength()));
+          const float driftMinX2(worldCoord2[0] - theTpc2.ActiveHalfWidth());
+          const float driftMaxX2(worldCoord2[0] + theTpc2.ActiveHalfWidth());
+          const float driftMinY2(worldCoord2[1] - theTpc2.ActiveHalfHeight());
+          const float driftMaxY2(worldCoord2[1] + theTpc2.ActiveHalfHeight());
+          const float driftMinZ2(worldCoord2[2] - 0.5f * theTpc2.ActiveLength());
+          const float driftMaxZ2(worldCoord2[2] + 0.5f * theTpc2.ActiveLength());
+
+          driftMinX = std::min(driftMinX, driftMinX2);
+          driftMaxX = std::max(driftMaxX, driftMaxX2);
+          driftMinY = std::min(driftMinY, driftMinY2);
+          driftMaxY = std::max(driftMaxY, driftMaxY2);
+          driftMinZ = std::min(driftMinZ, driftMinZ2);
+          driftMaxZ = std::max(driftMaxZ, driftMaxZ2);
         }
 
         // Collate the tpc volumes in this drift volume
         LArDaughterDriftVolumeList tpcVolumeList;
 
         for (const unsigned int itpc : tpcList) {
-          tpcVolumeList.push_back(LArDaughterDriftVolume(icstat, itpc));
+          tpcVolumeList.emplace_back(icstat, itpc);
         }
 
         // Create new daughter drift volume (volume ID = 0 to N-1)
-        driftVolumeList.push_back(LArDriftVolume(driftVolumeList.size(),
-                                                 isPositiveDrift,
-                                                 wirePitchU,
-                                                 wirePitchV,
-                                                 wirePitchW,
-                                                 wireAngleU,
-                                                 wireAngleV,
-                                                 wireAngleW,
-                                                 0.5f * (driftMaxX + driftMinX),
-                                                 0.5f * (driftMaxY + driftMinY),
-                                                 0.5f * (driftMaxZ + driftMinZ),
-                                                 (driftMaxX - driftMinX),
-                                                 (driftMaxY - driftMinY),
-                                                 (driftMaxZ - driftMinZ),
-                                                 (wirePitchU + wirePitchV + wirePitchW + 0.1f),
-                                                 tpcVolumeList));
+        driftVolumeList.emplace_back(driftVolumeList.size(),
+                                     isPositiveDrift,
+                                     wirePitchU,
+                                     wirePitchV,
+                                     wirePitchW,
+                                     wireAngleU,
+                                     wireAngleV,
+                                     wireAngleW,
+                                     0.5f * (driftMaxX + driftMinX),
+                                     0.5f * (driftMaxY + driftMinY),
+                                     0.5f * (driftMaxZ + driftMinZ),
+                                     (driftMaxX - driftMinX),
+                                     (driftMaxY - driftMinY),
+                                     (driftMaxZ - driftMinZ),
+                                     (wirePitchU + wirePitchV + wirePitchW + 0.1f),
+                                     tpcVolumeList);
       }
     }
 

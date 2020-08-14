@@ -54,9 +54,6 @@ namespace lar_pandora {
     std::string m_pfParticleLabel; ///< The pf particle label
     bool m_useAllParticles;        ///< Build a recob::Track for every recob::PFParticle
 
-    // TODO When implementation lived in LArPandoraOutput, it contained key building blocks for calculation of shower energies per plane.
-    // Now functionality has moved to separate module, will require reimplementation (was deeply embedded in LArPandoraOutput structure).
-    // const calo::LinearEnergyAlg    *m_pShowerEnergyAlg;       ///< The address of the shower energy algorithm
   };
 
   DEFINE_ART_MODULE(LArPandoraShowerCreation)
