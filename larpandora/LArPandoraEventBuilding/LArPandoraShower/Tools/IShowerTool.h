@@ -116,8 +116,7 @@ namespace ShowerRecoTools{
           }
 
           //Make the ptr
-          art::Ptr<T> artptr = UniquePtrs->GetArtPtr<T>(Name,index);
-          return artptr;
+          return UniquePtrs->GetArtPtr<T>(Name,index);
         }
 
       //Function so that the user can add products to the art event. This will set up the unique ptrs and the ptr makers required.

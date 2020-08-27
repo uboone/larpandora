@@ -55,8 +55,8 @@ std::map<int,std::vector<int> > shower::LArPandoraShowerCheatingAlg::GetTrueChai
   return showerMothers;
 }
 
-void shower::LArPandoraShowerCheatingAlg::CheatDebugEVD(const simb::MCParticle* trueParticle,
-    art::Event const& Event, reco::shower::ShowerElementHolder& ShowerEleHolder,
+void shower::LArPandoraShowerCheatingAlg::CheatDebugEVD(detinfo::DetectorClocksData const& clockData,
+    const simb::MCParticle* trueParticle, art::Event const& Event, reco::shower::ShowerElementHolder& ShowerEleHolder,
     const art::Ptr<recob::PFParticle>& pfparticle) const {
 
   std::cout<<"Making Debug Event Display"<<std::endl;
@@ -74,9 +74,9 @@ void shower::LArPandoraShowerCheatingAlg::CheatDebugEVD(const simb::MCParticle* 
   TCanvas* canvas = tfs->make<TCanvas>(canvasName, canvasName);
 
   // Initialise variables
-  float x = 0;
-  float y = 0;
-  float z = 0;
+  double x = 0;
+  double y = 0;
+  double z = 0;
 
   std::vector<art::Ptr<recob::SpacePoint> > showerSpacePoints;
   std::vector<art::Ptr<recob::SpacePoint> > otherSpacePoints;
@@ -86,7 +86,7 @@ void shower::LArPandoraShowerCheatingAlg::CheatDebugEVD(const simb::MCParticle* 
   art::fill_ptr_vector(hits, hitHandle);
 
   // Get the hits associated with the space points
-  art::FindManyP<recob::SpacePoint> fmsph(hitHandle, Event, fPFParticleLabel);
+  const art::FindManyP<recob::SpacePoint> fmsph(hitHandle, Event, fPFParticleLabel);
   if(!fmsph.isValid()){
     throw cet::exception("LArPandoraShowerCheatingAlg") << "Spacepoint and hit association not valid. Stopping.";
   }
@@ -94,7 +94,7 @@ void shower::LArPandoraShowerCheatingAlg::CheatDebugEVD(const simb::MCParticle* 
   std::map< art::Ptr<recob::SpacePoint>, art::Ptr<recob::Hit> > spacePointHitMap;
   //Get the hits from the true particle
   for (auto hit : hits){
-    int trueParticleID = TMath::Abs(TrueParticleID(hit));
+    int trueParticleID = TMath::Abs(TrueParticleID(clockData, hit));
     std::vector<art::Ptr<recob::SpacePoint> > sps = fmsph.at(hit.key());
     if (sps.size() == 1){
       art::Ptr<recob::SpacePoint> sp = sps.front();
@@ -105,7 +105,6 @@ void shower::LArPandoraShowerCheatingAlg::CheatDebugEVD(const simb::MCParticle* 
       }
     }
   }
-
 
   if(!ShowerEleHolder.CheckElement(fShowerStartPositionInputLabel)){
     mf::LogError("LArPandoraShowerCheatingAlg") << "Start position not set, returning "<< std::endl;
@@ -131,48 +130,56 @@ void shower::LArPandoraShowerCheatingAlg::CheatDebugEVD(const simb::MCParticle* 
 
   // Create 3D point at vertex, chosed to be origin for ease of use of display
   double startXYZ[3] = {0,0,0};
-  TPolyMarker3D* startPoly = new TPolyMarker3D(1,startXYZ);
+  auto startPoly = std::make_unique<TPolyMarker3D>(1,startXYZ);
 
   // Get the min and max projections along the direction to know how long to draw
   // the direction line
-  double minProj=-1;
-  double maxProj=1;
+  double minProj = std::numeric_limits<double>::max();
+  double maxProj = -std::numeric_limits<double>::max();
+
+  double x_min=std::numeric_limits<double>::max(), x_max=-std::numeric_limits<double>::max();
+  double y_min=std::numeric_limits<double>::max(), y_max=-std::numeric_limits<double>::max();
+  double z_min=std::numeric_limits<double>::max(), z_max=-std::numeric_limits<double>::max();
 
   //initialise counter point
   int point = 0;
 
 
   // Make 3D points for each spacepoint in the shower
-  TPolyMarker3D* showerPoly = new TPolyMarker3D(showerSpacePoints.size());
+  auto showerPoly = std::make_unique<TPolyMarker3D>(showerSpacePoints.size());
   for (auto spacePoint : showerSpacePoints){
     TVector3 pos = fLArPandoraShowerAlg.SpacePointPosition(spacePoint) - showerStartPosition;
 
     x = pos.X();
     y = pos.Y();
     z = pos.Z();
+    x_min = std::min(x,x_min);
+    x_max = std::max(x,x_max);
+    y_min = std::min(y,y_min);
+    y_max = std::max(y,y_max);
+    z_min = std::min(z,z_min);
+    z_max = std::max(z,z_max);
+
     showerPoly->SetPoint(point,x,y,z);
     ++point;
 
     // Calculate the projection of (point-startpoint) along the direction
     double proj = fLArPandoraShowerAlg.SpacePointProjection(spacePoint, showerStartPosition,
         showerDirection);
-    if (proj>maxProj) {
-      maxProj = proj;
-    } else if (proj<minProj) {
-      minProj = proj ;
-    }
 
+    maxProj = std::max(proj, maxProj);
+    minProj = std::min(proj, minProj);
   } // loop over spacepoints
 
   // Create TPolyLine3D arrays
-  double xDirPoints[3] = {minProj*showerDirection.X(), 0, maxProj*showerDirection.X()};
-  double yDirPoints[3] = {minProj*showerDirection.Y(), 0, maxProj*showerDirection.Y()};
-  double zDirPoints[3] = {minProj*showerDirection.Z(), 0, maxProj*showerDirection.Z()};
+  double xDirPoints[2] = {minProj*showerDirection.X(), maxProj*showerDirection.X()};
+  double yDirPoints[2] = {minProj*showerDirection.Y(), maxProj*showerDirection.Y()};
+  double zDirPoints[2] = {minProj*showerDirection.Z(), maxProj*showerDirection.Z()};
 
-  TPolyLine3D* dirPoly = new TPolyLine3D(3,xDirPoints,yDirPoints,zDirPoints);
+  auto dirPoly = std::make_unique<TPolyLine3D>(2,xDirPoints,yDirPoints,zDirPoints);
 
   point = 0; // re-initialise counter
-  TPolyMarker3D* trackPoly = new TPolyMarker3D(trackSpacePoints.size());
+  auto trackPoly = std::make_unique<TPolyMarker3D>(trackSpacePoints.size());
   for (auto spacePoint : trackSpacePoints){
     TVector3 pos = fLArPandoraShowerAlg.SpacePointPosition(spacePoint) - showerStartPosition;
     x = pos.X();
@@ -185,7 +192,7 @@ void shower::LArPandoraShowerCheatingAlg::CheatDebugEVD(const simb::MCParticle* 
   //  we want to draw all of the PFParticles in the event
   //Get the PFParticles
 
-  TPolyMarker3D* otherPoly = new TPolyMarker3D(otherSpacePoints.size());
+  auto otherPoly = std::make_unique<TPolyMarker3D>(otherSpacePoints.size());
 
   // initialise counters
   point = 0; // re-initialise counter
@@ -195,14 +202,27 @@ void shower::LArPandoraShowerCheatingAlg::CheatDebugEVD(const simb::MCParticle* 
     x = pos.X();
     y = pos.Y();
     z = pos.Z();
+    x_min = std::min(x,x_min);
+    x_max = std::max(x,x_max);
+    y_min = std::min(y,y_min);
+    y_max = std::max(y,y_max);
+    z_min = std::min(z,z_min);
+    z_max = std::max(z,z_max);
     otherPoly->SetPoint(point,x,y,z);
     ++point;
   }
 
+  gStyle->SetOptStat(0);
+  TH3F axes("axes","",1,x_min,x_max,1,y_min,y_max,1,z_min,z_max);
+  axes.SetDirectory(0);
+  axes.GetXaxis()->SetTitle("X");
+  axes.GetYaxis()->SetTitle("Y");
+  axes.GetZaxis()->SetTitle("Z");
+  axes.Draw();
+
   otherPoly->SetMarkerStyle(20);
   otherPoly->SetMarkerColor(4);
   otherPoly->Draw();
-
 
   // Draw all of the things
   showerPoly->SetMarkerStyle(20);
@@ -223,11 +243,13 @@ void shower::LArPandoraShowerCheatingAlg::CheatDebugEVD(const simb::MCParticle* 
   canvas->Write();
 }
 
-int shower::LArPandoraShowerCheatingAlg::TrueParticleID(const art::Ptr<recob::Hit>& hit) const {
+int shower::LArPandoraShowerCheatingAlg::TrueParticleID(detinfo::DetectorClocksData const& clockData,
+    const art::Ptr<recob::Hit>& hit) const {
+
   double particleEnergy = 0;
   int likelyTrackID = 0;
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
-  std::vector<sim::TrackIDE> trackIDs = bt_serv->HitToTrackIDEs(hit);
+  std::vector<sim::TrackIDE> trackIDs = bt_serv->HitToTrackIDEs(clockData, hit);
   for (unsigned int idIt = 0; idIt < trackIDs.size(); ++idIt) {
     if (trackIDs.at(idIt).energy > particleEnergy) {
       particleEnergy = trackIDs.at(idIt).energy;
@@ -237,8 +259,9 @@ int shower::LArPandoraShowerCheatingAlg::TrueParticleID(const art::Ptr<recob::Hi
   return likelyTrackID;
 }
 
-std::pair<int,double> shower::LArPandoraShowerCheatingAlg::TrueParticleIDFromTrueChain(std::map<int,std::vector<int>> const& ShowersMothers,
-    std::vector<art::Ptr<recob::Hit> > const& hits, int planeid) const {
+std::pair<int,double> shower::LArPandoraShowerCheatingAlg::TrueParticleIDFromTrueChain(detinfo::DetectorClocksData const& clockData,
+    std::map<int,std::vector<int>> const& ShowersMothers, std::vector<art::Ptr<recob::Hit> > const& hits, int planeid) const {
+
   art::ServiceHandle<cheat::BackTrackerService> bt_serv;
   art::ServiceHandle<cheat::ParticleInventoryService> particleInventory;
 
@@ -251,7 +274,7 @@ std::pair<int,double> shower::LArPandoraShowerCheatingAlg::TrueParticleIDFromTru
     //Get the plane ID
     geo::WireID wireid = (*hitIt)->WireID();
     int PlaneID = wireid.Plane;
-    std::vector<sim::TrackIDE> trackIDs = bt_serv->HitToTrackIDEs(hit);
+    std::vector<sim::TrackIDE> trackIDs = bt_serv->HitToTrackIDEs(clockData, hit);
     for (unsigned int idIt = 0; idIt < trackIDs.size(); ++idIt) {
       trackIDTo3EDepMap[TMath::Abs(trackIDs[idIt].trackID)] += trackIDs[idIt].energy;
       if(PlaneID == planeid){trackIDToEDepMap[TMath::Abs(trackIDs[idIt].trackID)] += trackIDs[idIt].energy;}

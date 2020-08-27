@@ -40,7 +40,9 @@ namespace ShowerRecoTools {
           reco::shower::ShowerElementHolder& ShowerEleHolder) override;
 
       // Define standard art tool interface
-      recob::PCAxis CalculateShowerPCA(std::vector<art::Ptr<recob::SpacePoint> >& spacePoints_pfp,
+      recob::PCAxis CalculateShowerPCA(const detinfo::DetectorClocksData& clockData,
+          const detinfo::DetectorPropertiesData& detProp,
+          const std::vector<art::Ptr<recob::SpacePoint> >& spacePoints_pfp,
           const art::FindManyP<recob::Hit>& fmh, TVector3& ShowerCentre);
 
       TVector3 GetPCAxisVector(recob::PCAxis& PCAxis);
@@ -50,9 +52,6 @@ namespace ShowerRecoTools {
 
       // Function to calculate the RMS spread of perpendicular distances from PCA
       double CalculateRMS(const std::vector<double>& perpVec);
-
-      //Services
-      detinfo::DetectorProperties const* fDetProp;
 
       //fcl
       art::InputTag fPFParticleLabel;
@@ -71,7 +70,6 @@ namespace ShowerRecoTools {
 
   ShowerPCADirection::ShowerPCADirection(const fhicl::ParameterSet& pset) :
     IShowerTool(pset.get<fhicl::ParameterSet>("BaseTools")),
-    fDetProp(lar::providerFrom<detinfo::DetectorPropertiesService>()),
     fPFParticleLabel(pset.get<art::InputTag>("PFParticleLabel")),
     fVerbose(pset.get<int>("Verbose")),
     fNSegments(pset.get<float>("NSegments")),
@@ -114,9 +112,12 @@ namespace ShowerRecoTools {
     if(spacePoints_pfp.empty())
       return 1;
 
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(Event);
+    auto const detProp   = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(Event, clockData);
+
     //Find the PCA vector
     TVector3 ShowerCentre;
-    recob::PCAxis PCA = CalculateShowerPCA(spacePoints_pfp,fmh,ShowerCentre);
+    recob::PCAxis PCA = CalculateShowerPCA(clockData, detProp, spacePoints_pfp, fmh, ShowerCentre);
     TVector3 PCADirection = GetPCAxisVector(PCA);
 
     //Save the shower the center for downstream tools
@@ -231,7 +232,10 @@ namespace ShowerRecoTools {
 
 
   //Function to calculate the shower direction using a charge weight 3D PCA calculation.
-  recob::PCAxis ShowerPCADirection::CalculateShowerPCA(std::vector<art::Ptr<recob::SpacePoint> >& sps, const art::FindManyP<recob::Hit>& fmh, TVector3& ShowerCentre){
+  recob::PCAxis ShowerPCADirection::CalculateShowerPCA(const detinfo::DetectorClocksData& clockData,
+      const detinfo::DetectorPropertiesData& detProp,
+      const std::vector<art::Ptr<recob::SpacePoint> >& sps,
+      const art::FindManyP<recob::Hit>& fmh, TVector3& ShowerCentre){
 
     float TotalCharge = 0;
     float sumWeights = 0;
@@ -244,7 +248,7 @@ namespace ShowerRecoTools {
 
     //Get the Shower Centre
     if (fChargeWeighted){
-      ShowerCentre = IShowerTool::GetLArPandoraShowerAlg().ShowerCentre(sps, fmh, TotalCharge);
+      ShowerCentre = IShowerTool::GetLArPandoraShowerAlg().ShowerCentre(clockData, detProp, sps, fmh, TotalCharge);
     } else {
       ShowerCentre = IShowerTool::GetLArPandoraShowerAlg().ShowerCentre(sps);
     }
@@ -268,7 +272,7 @@ namespace ShowerRecoTools {
         float Time = IShowerTool::GetLArPandoraShowerAlg().SpacePointTime(sp,fmh);
 
         //Correct for the lifetime at the moment.
-        Charge *= TMath::Exp((fDetProp->SamplingRate() * Time ) / (fDetProp->ElectronLifetime()*1e3));
+        Charge *= TMath::Exp((sampling_rate(clockData) * Time ) / (detProp.ElectronLifetime()*1e3));
 
         //Charge Weight
         wht *= TMath::Sqrt(Charge/TotalCharge);

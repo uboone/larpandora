@@ -109,7 +109,10 @@ namespace ShowerRecoTools{
       if(spacePoints_pfp.empty()){return 0;}
 
       //Get the Shower Center
-      TVector3 ShowerCentre = IShowerTool::GetLArPandoraShowerAlg().ShowerCentre(spacePoints_pfp,fmh);
+      auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(Event);
+      auto const detProp   = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(Event, clockData);
+
+      TVector3 ShowerCentre = IShowerTool::GetLArPandoraShowerAlg().ShowerCentre(clockData, detProp, spacePoints_pfp,fmh);
 
       //Order the Hits from the shower centre. The most negative will be the start position.
       IShowerTool::GetLArPandoraShowerAlg().OrderShowerSpacePoints(spacePoints_pfp,ShowerCentre,ShowerDirection);

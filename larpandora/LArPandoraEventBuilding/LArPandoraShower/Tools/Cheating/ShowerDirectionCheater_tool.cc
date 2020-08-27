@@ -85,6 +85,9 @@ namespace ShowerRecoTools {
     //Get the hits from the shower:
     auto const pfpHandle = Event.getValidHandle<std::vector<recob::PFParticle> >(fPFParticleLabel);
 
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(Event);
+    auto const detProp   = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(Event, clockData);
+
     if (ShowerEleHolder.CheckElement(fTrueParticleInputLabel)){
       ShowerEleHolder.GetElement(fTrueParticleInputLabel,trueParticle);
     } else {
@@ -109,7 +112,8 @@ namespace ShowerRecoTools {
       }
 
       //Get the true particle from the shower
-      std::pair<int,double> ShowerTrackInfo = fLArPandoraShowerCheatingAlg.TrueParticleIDFromTrueChain(showersMothers,showerHits,2);
+      std::pair<int,double> ShowerTrackInfo = fLArPandoraShowerCheatingAlg.TrueParticleIDFromTrueChain(clockData,
+          showersMothers,showerHits,2);
 
       if(ShowerTrackInfo.first==-99999) {
         mf::LogError("ShowerDirectionCheater") << "True shower not found, returning";
@@ -143,7 +147,8 @@ namespace ShowerRecoTools {
 
       //Get Shower Centre
       float TotalCharge;
-      TVector3 ShowerCentre = IShowerTool::GetLArPandoraShowerAlg().ShowerCentre(spacePoints, fmh, TotalCharge);
+
+      TVector3 ShowerCentre = IShowerTool::GetLArPandoraShowerAlg().ShowerCentre(clockData, detProp, spacePoints, fmh, TotalCharge);
 
       //Check if we are pointing the correct direction or not, First try the start position
       if(ShowerEleHolder.CheckElement(fShowerStartPositionInputLabel) && fVertexFlip){

@@ -67,6 +67,7 @@ namespace ShowerRecoTools {
 
     //Get the hits from the shower:
     auto const pfpHandle = Event.getValidHandle<std::vector<recob::PFParticle> >(fPFParticleLabel);
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(Event);
 
     if (ShowerEleHolder.CheckElement(fTrueParticleIntputLabel)){
       ShowerEleHolder.GetElement(fTrueParticleIntputLabel,trueParticle);
@@ -94,7 +95,8 @@ namespace ShowerRecoTools {
       }
 
       //Get the true particle from the shower
-      std::pair<int,double> ShowerTrackInfo = fLArPandoraShowerCheatingAlg.TrueParticleIDFromTrueChain(showersMothers,showerHits,2);
+      std::pair<int,double> ShowerTrackInfo = fLArPandoraShowerCheatingAlg.TrueParticleIDFromTrueChain(clockData,
+          showersMothers,showerHits,2);
 
       if(ShowerTrackInfo.first==-99999) {
         mf::LogError("ShowerStartPosition") << "True Shower Not Found";
@@ -134,7 +136,7 @@ namespace ShowerRecoTools {
 
     //Get the hits from the true particle
     for (auto hit : hits){
-      int trueParticleID = fLArPandoraShowerCheatingAlg.TrueParticleID(hit);
+      int trueParticleID = fLArPandoraShowerCheatingAlg.TrueParticleID(clockData, hit);
       if (trueParticleID == trueParticle->TrackId()){
         trackHits.push_back(hit);
         std::vector<art::Ptr<recob::SpacePoint> > sps = fmsph.at(hit.key());
@@ -148,7 +150,7 @@ namespace ShowerRecoTools {
     ShowerEleHolder.SetElement(trackSpacePoints,fInitialTrackSpacePointsOutputLabel);
 
     if (fDebugEVD){
-      fLArPandoraShowerCheatingAlg.CheatDebugEVD(trueParticle, Event, ShowerEleHolder, pfparticle);
+      fLArPandoraShowerCheatingAlg.CheatDebugEVD(clockData, trueParticle, Event, ShowerEleHolder, pfparticle);
     }
 
     return 0;

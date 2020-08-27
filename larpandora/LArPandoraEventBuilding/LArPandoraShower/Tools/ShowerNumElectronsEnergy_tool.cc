@@ -36,13 +36,15 @@ namespace ShowerRecoTools {
 
     private:
 
-      double CalculateEnergy(std::vector<art::Ptr<recob::Hit> >& hits, geo::View_t& view);
+      double CalculateEnergy(const detinfo::DetectorClocksData& clockData,
+          const detinfo::DetectorPropertiesData& detProp,
+          std::vector<art::Ptr<recob::Hit> >& hits,
+          geo::View_t& view);
 
       art::InputTag fPFParticleLabel;
       int fVerbose;
 
       //Services
-      detinfo::DetectorProperties const* detprop = nullptr;
       art::ServiceHandle<geo::Geometry> fGeom;
       calo::CalorimetryAlg              fCalorimetryAlg;
 
@@ -61,7 +63,6 @@ namespace ShowerRecoTools {
     IShowerTool(pset.get<fhicl::ParameterSet>("BaseTools")),
     fPFParticleLabel(pset.get<art::InputTag>("PFParticleLabel")),
     fVerbose(pset.get<int>("Verbose")),
-    detprop(lar::providerFrom<detinfo::DetectorPropertiesService>()),
     fCalorimetryAlg(pset.get<fhicl::ParameterSet>("CalorimetryAlg")),
     fRecombinationFactor(pset.get<double>("RecombinationFactor"))
   {
@@ -136,6 +137,9 @@ namespace ShowerRecoTools {
     std::map<unsigned int, double > view_energies;
     std::vector<art::Ptr<recob::Hit>> hits;
 
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(Event);
+    auto const detProp   = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(Event, clockData);
+
     //Accounting for events crossing the cathode.
     for(auto const& view_hit_iter: view_hits){
 
@@ -143,7 +147,7 @@ namespace ShowerRecoTools {
       geo::View_t view = view_hit_iter.first;
 
       //Calculate the Energy
-      Energy = CalculateEnergy(hits,view);
+      Energy = CalculateEnergy(clockData, detProp, hits,view);
       //std::cout << "hits = " << hits.size() << std::endl;
 
       // Print out the energy for each plane
@@ -202,21 +206,21 @@ namespace ShowerRecoTools {
       }
     }
     return 0;
-
   }
 
-
-
   // function to calculate the reco energy
-  double ShowerNumElectronsEnergy::CalculateEnergy(std::vector<art::Ptr<recob::Hit> >& hits, geo::View_t& view){
+  double ShowerNumElectronsEnergy::CalculateEnergy(const detinfo::DetectorClocksData& clockData,
+          const detinfo::DetectorPropertiesData& detProp,
+          std::vector<art::Ptr<recob::Hit> >& hits,
+          geo::View_t& view){
 
     double totalCharge = 0;
     double totalEnergy = 0;
     double correctedtotalCharge = 0;
     double nElectrons = 0;
 
-    for (art::PtrVector<recob::Hit>::const_iterator hit = hits.begin(); hit != hits.end(); ++hit){
-      totalCharge += (*hit)->Integral() * fCalorimetryAlg.LifetimeCorrection((*hit)->PeakTime()); // obtain charge and correct for lifetime
+    for (auto const& hit :hits){
+      totalCharge += hit->Integral() * fCalorimetryAlg.LifetimeCorrection(clockData, detProp, hit->PeakTime()); // obtain charge and correct for lifetime
     }
 
     // correct charge due to recombination
@@ -225,12 +229,7 @@ namespace ShowerRecoTools {
     nElectrons = fCalorimetryAlg.ElectronsFromADCArea(correctedtotalCharge, view);
     totalEnergy = (nElectrons / util::kGeVToElectrons) * 1000; // energy in MeV
     return totalEnergy;
-
   }
-
-
 }
 
 DEFINE_ART_CLASS_TOOL(ShowerRecoTools::ShowerNumElectronsEnergy)
-
-

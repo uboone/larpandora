@@ -17,7 +17,6 @@
 
 namespace ShowerRecoTools {
 
-
   class ShowerTrackPCADirection:IShowerTool {
 
     public:
@@ -32,29 +31,27 @@ namespace ShowerRecoTools {
 
     private:
 
-      TVector3 ShowerPCAVector(std::vector<art::Ptr<recob::SpacePoint> >& spacePoints_pfp, const art::FindManyP<recob::Hit>& fmh, TVector3& ShowerCentre);
-
-
-      //Services
-      detinfo::DetectorProperties const* fDetProp;
+      TVector3 ShowerPCAVector(const detinfo::DetectorClocksData& clockData,
+          const detinfo::DetectorPropertiesData& detProp,
+          std::vector<art::Ptr<recob::SpacePoint> >& spacePoints_pfp,
+          const art::FindManyP<recob::Hit>& fmh,
+          TVector3& ShowerCentre);
 
       //fcl
       art::InputTag fPFParticleLabel;
       art::InputTag fHitModuleLabel;
-      int            fVerbose;
+      int           fVerbose;
       bool          fChargeWeighted;  //Should we charge weight the PCA.
       unsigned int  fMinPCAPoints;    //Number of spacepoints needed to do the analysis.
 
       std::string fShowerStartPositionInputLabel;
       std::string fInitialTrackSpacePointsInputLabel;
       std::string fShowerDirectionOutputLabel;
-
   };
 
 
   ShowerTrackPCADirection::ShowerTrackPCADirection(const fhicl::ParameterSet& pset)
-    :     IShowerTool(pset.get<fhicl::ParameterSet>("BaseTools")),
-    fDetProp(lar::providerFrom<detinfo::DetectorPropertiesService>()),
+    : IShowerTool(pset.get<fhicl::ParameterSet>("BaseTools")),
     fPFParticleLabel(pset.get<art::InputTag>("PFParticleLabel")),
     fHitModuleLabel(pset.get<art::InputTag>("HitModuleLabel")),
     fVerbose(pset.get<int>                 ("Verbose")),
@@ -98,10 +95,12 @@ namespace ShowerRecoTools {
       return 1;
     }
 
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(Event);
+    auto const detProp   = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(Event, clockData);
+
     //Find the PCA vector
     TVector3 trackCentre;
-    TVector3 Eigenvector = ShowerPCAVector(trackSpacePoints, fmh, trackCentre);
-
+    TVector3 Eigenvector = ShowerPCAVector(clockData, detProp, trackSpacePoints, fmh, trackCentre);
 
     //Get the General direction as the vector between the start position and the centre
     TVector3 StartPositionVec = {-999, -999, -999};
@@ -127,7 +126,10 @@ namespace ShowerRecoTools {
 
 
   //Function to calculate the shower direction using a charge weight 3D PCA calculation.
-  TVector3 ShowerTrackPCADirection::ShowerPCAVector(std::vector<art::Ptr<recob::SpacePoint> >& sps, const art::FindManyP<recob::Hit>& fmh, TVector3& ShowerCentre){
+  TVector3 ShowerTrackPCADirection::ShowerPCAVector(const detinfo::DetectorClocksData& clockData,
+          const detinfo::DetectorPropertiesData& detProp,
+          std::vector<art::Ptr<recob::SpacePoint> >& sps,
+          const art::FindManyP<recob::Hit>& fmh, TVector3& ShowerCentre){
 
     //Initialise the the PCA.
     TPrincipal *pca = new TPrincipal(3,"");
@@ -135,7 +137,7 @@ namespace ShowerRecoTools {
     float TotalCharge = 0;
 
     //Get the Shower Centre
-    ShowerCentre = IShowerTool::GetLArPandoraShowerAlg().ShowerCentre(sps, fmh, TotalCharge);
+    ShowerCentre = IShowerTool::GetLArPandoraShowerAlg().ShowerCentre(clockData, detProp, sps, fmh, TotalCharge);
 
 
     //Normalise the spacepoints, charge weight and add to the PCA.
@@ -157,7 +159,7 @@ namespace ShowerRecoTools {
         float Time = IShowerTool::GetLArPandoraShowerAlg().SpacePointTime(sp,fmh);
 
         //Correct for the lifetime at the moment.
-        Charge *= TMath::Exp((fDetProp->SamplingRate() * Time ) / (fDetProp->ElectronLifetime()*1e3));
+        Charge *= TMath::Exp((sampling_rate(clockData)* Time ) / (detProp.ElectronLifetime()*1e3));
 
         //Charge Weight
         wht *= TMath::Sqrt(Charge/TotalCharge);

@@ -35,6 +35,10 @@
 #include "TPolyLine3D.h"
 #include "TString.h"
 
+namespace detinfo {
+    class DetectorClocksData;
+}
+
 namespace shower {
   class LArPandoraShowerCheatingAlg;
 }
@@ -45,14 +49,13 @@ class shower::LArPandoraShowerCheatingAlg {
 
     std::map<int,const simb::MCParticle*> GetTrueParticleMap() const;
     std::map<int,std::vector<int> > GetTrueChain(std::map<int,const simb::MCParticle*>& trueParticles) const;
-    void CheatDebugEVD(const simb::MCParticle* trueParticle, art::Event const& Event,
-        reco::shower::ShowerElementHolder& ShowerEleHolder,
-        const art::Ptr<recob::PFParticle>& pfparticle) const;
+    void CheatDebugEVD(detinfo::DetectorClocksData const& clockData, const simb::MCParticle* trueParticle, art::Event const& Event,
+        reco::shower::ShowerElementHolder& ShowerEleHolder, const art::Ptr<recob::PFParticle>& pfparticle) const;
 
-    int TrueParticleID(const art::Ptr<recob::Hit>& hit) const;
+    int TrueParticleID(detinfo::DetectorClocksData const& clockData, const art::Ptr<recob::Hit>& hit) const;
 
-    std::pair<int,double> TrueParticleIDFromTrueChain(std::map<int,std::vector<int> > const& ShowersMothers,
-                                                      std::vector<art::Ptr<recob::Hit> > const& hits, int planeid) const;
+    std::pair<int,double> TrueParticleIDFromTrueChain(detinfo::DetectorClocksData const& clockData,
+        std::map<int,std::vector<int> > const& ShowersMothers, std::vector<art::Ptr<recob::Hit> > const& hits, int planeid) const;
 
   private:
 
@@ -62,7 +65,6 @@ class shower::LArPandoraShowerCheatingAlg {
     art::InputTag                                       fPFParticleLabel;
     art::ServiceHandle<cheat::ParticleInventoryService> particleInventory;
     art::ServiceHandle<art::TFileService>   tfs;
-
 
     std::string fShowerStartPositionInputLabel;
     std::string fShowerDirectionInputLabel;

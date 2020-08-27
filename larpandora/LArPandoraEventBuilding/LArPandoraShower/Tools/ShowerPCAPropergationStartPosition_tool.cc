@@ -53,7 +53,7 @@ namespace ShowerRecoTools {
   int ShowerPCAPropergationStartPosition::CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
       art::Event& Event, reco::shower::ShowerElementHolder& ShowerEleHolder){
 
-    TVector3 ShowerCentre        = {-999,-999,-999};
+    TVector3 ShowerCentre = {-999,-999,-999};
 
     //Get the start position and direction and center
     if(!ShowerEleHolder.CheckElement(fShowerStartPositionInputLabel)){
@@ -67,6 +67,9 @@ namespace ShowerRecoTools {
       return 1;
     }
     if(!ShowerEleHolder.CheckElement(fShowerCentreInputLabel)){
+
+      auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(Event);
+      auto const detProp   = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(Event, clockData);
 
       // Get the assocated pfParicle vertex PFParticles
       auto const pfpHandle = Event.getValidHandle<std::vector<recob::PFParticle> >(fPFParticleLabel);
@@ -88,7 +91,7 @@ namespace ShowerRecoTools {
         return 1;
 
       //Get the shower center
-      ShowerCentre = IShowerTool::GetLArPandoraShowerAlg().ShowerCentre(spacePoints_pfp,fmh);
+      ShowerCentre = IShowerTool::GetLArPandoraShowerAlg().ShowerCentre(clockData, detProp, spacePoints_pfp,fmh);
 
     }
     else{

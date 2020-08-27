@@ -30,7 +30,9 @@ namespace ShowerRecoTools{
     private:
 
       //Function to find the
-      std::vector<art::Ptr<recob::Hit> > FindInitialTrackHits(std::vector<art::Ptr<recob::Hit> >& hits);
+      std::vector<art::Ptr<recob::Hit> > FindInitialTrackHits(
+          const detinfo::DetectorPropertiesData& detProp,
+          std::vector<art::Ptr<recob::Hit> >& hits);
 
       //Function to perform a weighted regression fit.
       Int_t WeightedFit(const Int_t n, const Double_t *x, const Double_t *y,
@@ -137,6 +139,9 @@ namespace ShowerRecoTools{
       //plane_clusters[plane].insert(plane_clusters[plane].end(),hits.begin(),hits.end());
     }
 
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(Event);
+    auto const detProp   = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(Event, clockData);
+
     std::vector<art::Ptr<recob::Hit> > InitialTrackHits;
     //Loop over the clusters and order the hits and get the initial track hits in that plane
     for(auto const& cluster: plane_clusters){
@@ -145,10 +150,10 @@ namespace ShowerRecoTools{
       std::vector<art::Ptr<recob::Hit> > hits = cluster.second;
 
       //Order the hits
-      IShowerTool::GetLArPandoraShowerAlg().OrderShowerHits(hits,ShowerStartPosition,ShowerDirection);
+      IShowerTool::GetLArPandoraShowerAlg().OrderShowerHits(detProp, hits,ShowerStartPosition,ShowerDirection);
 
       //Find the initial track hits
-      std::vector<art::Ptr<recob::Hit> > trackhits = FindInitialTrackHits(hits);
+      std::vector<art::Ptr<recob::Hit> > trackhits = FindInitialTrackHits(detProp, hits);
 
       InitialTrackHits.insert(InitialTrackHits.end(),trackhits.begin(),trackhits.end());
     }
@@ -177,7 +182,9 @@ namespace ShowerRecoTools{
   }
 
   //Function to calculate the what are the initial tracks hits. Adapted from EMShower FindInitialTrackHits
-  std::vector<art::Ptr<recob::Hit> > Shower2DLinearRegressionTrackHitFinder::FindInitialTrackHits(std::vector<art::Ptr<recob::Hit> >& hits){
+  std::vector<art::Ptr<recob::Hit> > Shower2DLinearRegressionTrackHitFinder::FindInitialTrackHits(
+      const detinfo::DetectorPropertiesData& detProp,
+      std::vector<art::Ptr<recob::Hit> >& hits){
 
     std::vector<art::Ptr<recob::Hit> > trackHits;
 
@@ -195,7 +202,7 @@ namespace ShowerRecoTools{
 
         //Not sure I am a fan of doing things in wire tick space. What if id doesn't not iterate properly or the
         //two planes in each TPC are not symmetric.
-        TVector2 coord = IShowerTool::GetLArPandoraShowerAlg().HitCoordinates(hit);
+        TVector2 coord = IShowerTool::GetLArPandoraShowerAlg().HitCoordinates(detProp, hit);
 
         if (i==0||(std::abs((coord.Y()-(parm[0]+coord.X()*parm[1]))*cos(atan(parm[1])))<fToler[i-1])||fitok==1){
           ++nhits;

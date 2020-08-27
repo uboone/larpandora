@@ -29,7 +29,10 @@ namespace ShowerRecoTools {
           ) override;
     private:
 
-      double CalculateEnergy(std::vector<art::Ptr<recob::Hit> >& hits, int& plane);
+      double CalculateEnergy(const detinfo::DetectorClocksData& clockData,
+          const detinfo::DetectorPropertiesData& detProp,
+          const std::vector<art::Ptr<recob::Hit> >& hits,
+          const int plane);
 
       //fcl parameters
       unsigned int        fNumPlanes;
@@ -43,7 +46,6 @@ namespace ShowerRecoTools {
       std::string fShowerBestPlaneOutputLabel;
 
       //Services
-      detinfo::DetectorProperties const* detprop = nullptr;
       art::ServiceHandle<geo::Geometry> fGeom;
 
   };
@@ -55,8 +57,7 @@ namespace ShowerRecoTools {
     fPFParticleLabel(pset.get<art::InputTag>("PFParticleLabel")),
     fVerbose(pset.get<int>("Verbose")),
     fShowerEnergyOutputLabel(pset.get<std::string>("ShowerEnergyOutputLabel")),
-    fShowerBestPlaneOutputLabel(pset.get<std::string>("ShowerBestPlaneOutputLabel")),
-    detprop(lar::providerFrom<detinfo::DetectorPropertiesService>())
+    fShowerBestPlaneOutputLabel(pset.get<std::string>("ShowerBestPlaneOutputLabel"))
   {
     fNumPlanes = fGeom->Nplanes();
     if (fNumPlanes!=fGradients.size() || fNumPlanes!=fIntercepts.size()){
@@ -109,15 +110,15 @@ namespace ShowerRecoTools {
     std::vector<double> energyVec(fNumPlanes, -999);
     std::vector<double> energyError(fNumPlanes, -999);
 
-    for(auto const& planeHitIter: planeHits){
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(Event);
+    auto const detProp   = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(Event, clockData);
 
-      std::vector<art::Ptr<recob::Hit> > hits = planeHitIter.second;
+    for(auto const& [plane, hits]: planeHits){
 
-      int plane                 = planeHitIter.first;
       unsigned int planeNumHits = hits.size();
 
       //Calculate the Energy for
-      double Energy = CalculateEnergy(hits,plane);
+      double Energy = CalculateEnergy(clockData, detProp, hits,plane);
       // If the energy is negative, leave it at -999
       if (Energy>0)
         energyVec.at(plane) = Energy;
@@ -141,12 +142,15 @@ namespace ShowerRecoTools {
 
   //Function to calculate the energy of a shower in a plane. Using a linear map between charge and Energy.
   //Exactly the same method as the ShowerEnergyAlg.cxx. Thanks Mike.
-  double ShowerLinearEnergy::CalculateEnergy(std::vector<art::Ptr<recob::Hit> >& hits, int& plane) {
+  double ShowerLinearEnergy::CalculateEnergy(const detinfo::DetectorClocksData& clockData,
+          const detinfo::DetectorPropertiesData& detProp,
+          const std::vector<art::Ptr<recob::Hit> >& hits,
+          int plane) {
 
     double totalCharge = 0, totalEnergy = 0;
 
     for (auto const& hit: hits){
-      totalCharge += (hit->Integral() * TMath::Exp( (detprop->SamplingRate() * hit->PeakTime()) / (detprop->ElectronLifetime()*1e3) ) );
+      totalCharge += (hit->Integral() * TMath::Exp((sampling_rate(clockData)* hit->PeakTime()) / (detProp.ElectronLifetime()*1e3) ) );
     }
 
     totalEnergy = (totalCharge * fGradients.at(plane)) + fIntercepts.at(plane);

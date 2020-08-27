@@ -80,7 +80,10 @@ namespace ShowerRecoTools {
     }
 
     //Get the true particle from the shower
-    std::pair<int,double> ShowerTrackInfo = fLArPandoraShowerCheatingAlg.TrueParticleIDFromTrueChain(showersMothers,showerHits,2);
+    auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(Event);
+
+    std::pair<int,double> ShowerTrackInfo = fLArPandoraShowerCheatingAlg.TrueParticleIDFromTrueChain(clockData,
+        showersMothers,showerHits,2);
 
     if(ShowerTrackInfo.first==-99999) {
       mf::LogError("ShowerStartPositionCheater") << "True Shower Not Found";
