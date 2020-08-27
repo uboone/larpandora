@@ -128,7 +128,9 @@ namespace ShowerRecoTools {
     //Check if we are pointing the correct direction or not, First try the start position
     if(fUseStartPosition){
       if(!ShowerEleHolder.CheckElement(fShowerStartPositionInputLabel)){
-        throw cet::exception("ShowerPCADirection") << "fUseStartPosition is true but start position is not set. Stopping.";
+        if (fVerbose)
+          mf::LogError("ShowerPCADirection") << "fUseStartPosition is set but ShowerStartPosition is not set. Bailing" << std::endl;
+        return 1;
       }
       //Get the General direction as the vector between the start position and the centre
       TVector3 StartPositionVec = {-999, -999, -999};
