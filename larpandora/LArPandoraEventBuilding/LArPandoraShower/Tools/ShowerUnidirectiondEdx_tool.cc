@@ -143,7 +143,7 @@ namespace ShowerRecoTools{
         double wirepitch = fGeom->WirePitch(trackPlaneHits.at(0)->WireID().planeID());
         double angleToVert = fGeom->WireAngleToVertical(fGeom->Plane(plane).View(),
             trackPlaneHits[0]->WireID().planeID()) - 0.5*TMath::Pi();
-        double cosgamma = std::abs(sin(angleToVert)*showerDir.Y()+cos(angleToVert)*showerDir.Z());
+        double cosgamma = std::abs(std::sin(angleToVert)*showerDir.Y()+std::cos(angleToVert)*showerDir.Z());
 
         pitch = wirepitch/cosgamma;
 

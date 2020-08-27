@@ -227,7 +227,7 @@ namespace ShowerRecoTools {
     for (const auto& perp : perpVec){
       sum = perp*perp;
     }
-    return  TMath::Sqrt(sum/(perpVec.size()-1));
+    return  std::sqrt(sum/(perpVec.size()-1));
   }
 
 
@@ -272,10 +272,10 @@ namespace ShowerRecoTools {
         float Time = IShowerTool::GetLArPandoraShowerAlg().SpacePointTime(sp,fmh);
 
         //Correct for the lifetime at the moment.
-        Charge *= TMath::Exp((sampling_rate(clockData) * Time ) / (detProp.ElectronLifetime()*1e3));
+        Charge *= std::exp((sampling_rate(clockData) * Time ) / (detProp.ElectronLifetime()*1e3));
 
         //Charge Weight
-        wht *= TMath::Sqrt(Charge/TotalCharge);
+        wht *= std::sqrt(Charge/TotalCharge);
       }
 
       xx += sp_position.X() * sp_position.X() * wht;

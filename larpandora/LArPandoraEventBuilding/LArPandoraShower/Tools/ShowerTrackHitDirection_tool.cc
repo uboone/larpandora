@@ -135,13 +135,13 @@ namespace ShowerRecoTools {
     float RMSY = 999;
     float RMSZ = 999;
     if(sumX2/NumSps - ((sumX/NumSps)*((sumX/NumSps))) > 0){
-      RMSX = TMath::Sqrt(sumX2/NumSps - ((sumX/NumSps)*((sumX/NumSps))));
+      RMSX = std::sqrt(sumX2/NumSps - ((sumX/NumSps)*((sumX/NumSps))));
     }
     if(sumY2/NumSps - ((sumY/NumSps)*((sumY/NumSps))) > 0){
-      RMSY = TMath::Sqrt(sumY2/NumSps - ((sumY/NumSps)*((sumY/NumSps))));
+      RMSY = std::sqrt(sumY2/NumSps - ((sumY/NumSps)*((sumY/NumSps))));
     }
     if(sumZ2/NumSps - ((sumZ/NumSps)*((sumZ/NumSps))) > 0){
-      RMSZ = TMath::Sqrt(sumZ2/NumSps - ((sumZ/NumSps)*((sumZ/NumSps))));
+      RMSZ = std::sqrt(sumZ2/NumSps - ((sumZ/NumSps)*((sumZ/NumSps))));
     }
 
 
@@ -150,9 +150,9 @@ namespace ShowerRecoTools {
     int N = 0;
     for(auto const sp: intitaltrack_sp){
       TVector3 Direction = IShowerTool::GetLArPandoraShowerAlg().SpacePointPosition(sp) - StartPosition;
-      if((TMath::Abs((Direction-Mean).X()) < 1*RMSX) &&
-          (TMath::Abs((Direction-Mean).Y())< 1*RMSY) &&
-          (TMath::Abs((Direction-Mean).Z()) < 1*RMSZ)){
+      if((std::abs((Direction-Mean).X()) < 1*RMSX) &&
+          (std::abs((Direction-Mean).Y())< 1*RMSY) &&
+          (std::abs((Direction-Mean).Z()) < 1*RMSZ)){
         if(Direction.Mag() == 0){continue;}
         ++N;
         Direction_Mean += Direction;

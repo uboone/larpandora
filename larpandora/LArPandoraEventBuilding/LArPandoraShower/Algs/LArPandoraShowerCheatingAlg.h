@@ -1,39 +1,11 @@
 #ifndef LArPandoraShowerCheatingAlg_hxx
 #define LArPandoraShowerCheatingAlg_hxx
 
-//Framework Includes
-#include "fhiclcpp/ParameterSet.h"
-#include "art_root_io/TFileService.h"
-#include "messagefacility/MessageLogger/MessageLogger.h"
-#include "cetlib_except/exception.h"
-#include "canvas/Persistency/Common/Ptr.h"
-#include "canvas/Persistency/Common/FindManyP.h"
-
 //LArSoft Includes
 #include "nusimdata/SimulationBase/MCParticle.h"
 #include "larsim/MCCheater/BackTrackerService.h"
-#include "lardataobj/RecoBase/Hit.h"
-#include "lardataobj/RecoBase/PFParticle.h"
-#include "lardataobj/RecoBase/SpacePoint.h"
-#include "lardataobj/RecoBase/Track.h"
-#include "larpandora/LArPandoraEventBuilding/LArPandoraShower/Algs/ShowerElementHolder.hh"
 #include "larsim/MCCheater/ParticleInventoryService.h"
 #include "larpandora/LArPandoraEventBuilding/LArPandoraShower/Algs/LArPandoraShowerAlg.h"
-
-//C++ Includes
-#include <iostream>
-#include <vector>
-#include <map>
-
-//Root Includes
-#include "TVector3.h"
-#include "TMath.h"
-#include "TVector.h"
-#include "TTree.h"
-#include "TCanvas.h"
-#include "TPolyMarker3D.h"
-#include "TPolyLine3D.h"
-#include "TString.h"
 
 namespace detinfo {
     class DetectorClocksData;

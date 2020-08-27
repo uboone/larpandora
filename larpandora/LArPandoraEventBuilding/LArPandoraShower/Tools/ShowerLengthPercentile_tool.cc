@@ -116,7 +116,7 @@ namespace ShowerRecoTools {
     // double ShowerMaxWidth = IShowerTool::GetLArPandoraShowerAlg().SpacePointPerpendicular(
     //     spacePoints[spacePoints.size() -1], ShowerStartPosition, ShowerDirection);
 
-    double ShowerAngle = atan(ShowerWidth/ShowerLength);
+    double ShowerAngle = std::atan(ShowerWidth/ShowerLength);
     double ShowerAngleError = -999; //TODO: Do properly
 
     // Fill the shower element holder

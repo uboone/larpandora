@@ -82,7 +82,7 @@ void shower::LArPandoraShowerAlg::OrderShowerHits(detinfo::DetectorPropertiesDat
 
   double frontproj = frontpos*Shower2DDirection;
   double backproj  = backpos*Shower2DDirection;
-  if (TMath::Abs(backproj) < TMath::Abs(frontproj)){
+  if (std::abs(backproj) < std::abs(frontproj)){
     std::reverse(showerHits.begin(),showerHits.end());
   }
 
@@ -212,13 +212,13 @@ TVector3 shower::LArPandoraShowerAlg::ShowerCentre(detinfo::DetectorClocksData c
         if(hit->SignalType() == geo::kCollection){
           charge = hit->Integral();
           //Correct for the lifetime: Need to do other detproperites
-          charge *= TMath::Exp((sampling_rate(clockData) * hit->PeakTime()) / (detProp.ElectronLifetime()*1e3));
+          charge *= std::exp((sampling_rate(clockData) * hit->PeakTime()) / (detProp.ElectronLifetime()*1e3));
           break;
         }
       } else {
 
         //Correct for the lifetime FIX: Need  to do other detproperties somehow
-        double Q = hit->Integral()*TMath::Exp((sampling_rate(clockData) * hit->PeakTime()) / (detProp.ElectronLifetime()*1e3));
+        double Q = hit->Integral()*std::exp((sampling_rate(clockData) * hit->PeakTime()) / (detProp.ElectronLifetime()*1e3));
 
         charge  += Q;
         charge2 += Q*Q;
@@ -232,13 +232,13 @@ TVector3 shower::LArPandoraShowerAlg::ShowerCentre(detinfo::DetectorClocksData c
       float rms = 1;
 
       if(hits.size() > 1){
-        rms  = TMath::Sqrt((charge2 - charge*charge)/((float)(hits.size()-1)));
+        rms  = std::sqrt((charge2 - charge*charge)/((float)(hits.size()-1)));
       }
 
       charge = 0;
       int n = 0;
       for(auto const& hit: hits){
-        double lifetimecorrection = TMath::Exp((sampling_rate(clockData) * hit->PeakTime()) / (detProp.ElectronLifetime()*1e3));
+        double lifetimecorrection = std::exp((sampling_rate(clockData) * hit->PeakTime()) / (detProp.ElectronLifetime()*1e3));
         if(hit->Integral()*lifetimecorrection > (mean - 2*rms) && hit->Integral()*lifetimecorrection < (mean + 2*rms)){
           charge += hit->Integral()*lifetimecorrection;
           ++n;

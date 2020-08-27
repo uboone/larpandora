@@ -74,14 +74,14 @@ namespace ShowerRecoTools {
 
     //Find the length
     double primaryEigenValue = (eigenValues)[0];
-    double ShowerLength = TMath::Sqrt(primaryEigenValue) * 2 * fNSigma;
+    double ShowerLength = std::sqrt(primaryEigenValue) * 2 * fNSigma;
     double ShowerLengthError = -999;
 
     //Find the width of the shower
     double secondaryEigenValue = (eigenValues)[1];
-    double ShowerWidth = TMath::Sqrt(secondaryEigenValue) * 2 * fNSigma;
+    double ShowerWidth = std::sqrt(secondaryEigenValue) * 2 * fNSigma;
 
-    double ShowerAngle = atan(ShowerWidth/ShowerLength);
+    double ShowerAngle = std::atan(ShowerWidth/ShowerLength);
     double ShowerAngleError = -999;
 
     // Fill the shower element holder

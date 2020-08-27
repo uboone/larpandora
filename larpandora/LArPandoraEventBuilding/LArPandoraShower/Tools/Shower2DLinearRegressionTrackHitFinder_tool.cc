@@ -204,7 +204,7 @@ namespace ShowerRecoTools{
         //two planes in each TPC are not symmetric.
         TVector2 coord = IShowerTool::GetLArPandoraShowerAlg().HitCoordinates(detProp, hit);
 
-        if (i==0||(std::abs((coord.Y()-(parm[0]+coord.X()*parm[1]))*cos(atan(parm[1])))<fToler[i-1])||fitok==1){
+        if (i==0||(std::abs((coord.Y()-(parm[0]+coord.X()*parm[1]))*std::cos(std::atan(parm[1])))<fToler[i-1])||fitok==1){
           ++nhits;
           if (nhits==fNfithits[i]+1) break;
           wfit.push_back(coord.X());

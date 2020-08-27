@@ -109,13 +109,13 @@ namespace ShowerRecoTools {
       float RMSY = 999;
       float RMSZ = 999;
       if(sumX2/NumTraj - ((sumX/NumTraj)*((sumX/NumTraj))) > 0){
-        RMSX = TMath::Sqrt(sumX2/NumTraj - ((sumX/NumTraj)*((sumX/NumTraj))));
+        RMSX = std::sqrt(sumX2/NumTraj - ((sumX/NumTraj)*((sumX/NumTraj))));
       }
       if(sumY2/NumTraj - ((sumY/NumTraj)*((sumY/NumTraj))) > 0){
-        RMSY = TMath::Sqrt(sumY2/NumTraj - ((sumY/NumTraj)*((sumY/NumTraj))));
+        RMSY = std::sqrt(sumY2/NumTraj - ((sumY/NumTraj)*((sumY/NumTraj))));
       }
       if(sumZ2/NumTraj - ((sumZ/NumTraj)*((sumZ/NumTraj))) > 0){
-        RMSZ = TMath::Sqrt(sumZ2/NumTraj - ((sumZ/NumTraj)*((sumZ/NumTraj))));
+        RMSZ = std::sqrt(sumZ2/NumTraj - ((sumZ/NumTraj)*((sumZ/NumTraj))));
       }
 
       TVector3 Direction_Mean = {0,0,0};
@@ -133,9 +133,9 @@ namespace ShowerRecoTools {
         geo::Vector_t Direction   = (TrajPosition - StartPosition).Unit();
 
         //Remove points not within 1RMS.
-        if((TMath::Abs((Direction-Mean).X()) < 1*RMSX) &&
-            (TMath::Abs((Direction-Mean).Y()) < 1*RMSY) &&
-            (TMath::Abs((Direction-Mean).Z()) < 1*RMSZ)){
+        if((std::abs((Direction-Mean).X()) < 1*RMSX) &&
+            (std::abs((Direction-Mean).Y()) < 1*RMSY) &&
+            (std::abs((Direction-Mean).Z()) < 1*RMSZ)){
           TVector3 Direction_vec = {Direction.X(),Direction.Y(),Direction.Z()};
           if(Direction_vec.Mag() == 0){continue;}
           Direction_Mean += Direction_vec;
@@ -185,13 +185,13 @@ namespace ShowerRecoTools {
       float RMSY = 999;
       float RMSZ = 999;
       if(sumX2/NumTraj - ((sumX/NumTraj)*((sumX/NumTraj))) > 0){
-        RMSX = TMath::Sqrt(sumX2/NumTraj - ((sumX/NumTraj)*((sumX/NumTraj))));
+        RMSX = std::sqrt(sumX2/NumTraj - ((sumX/NumTraj)*((sumX/NumTraj))));
       }
       if(sumY2/NumTraj - ((sumY/NumTraj)*((sumY/NumTraj))) > 0){
-        RMSY = TMath::Sqrt(sumY2/NumTraj - ((sumY/NumTraj)*((sumY/NumTraj))));
+        RMSY = std::sqrt(sumY2/NumTraj - ((sumY/NumTraj)*((sumY/NumTraj))));
       }
       if(sumZ2/NumTraj - ((sumZ/NumTraj)*((sumZ/NumTraj))) > 0){
-        RMSZ = TMath::Sqrt(sumZ2/NumTraj - ((sumZ/NumTraj)*((sumZ/NumTraj))));
+        RMSZ = std::sqrt(sumZ2/NumTraj - ((sumZ/NumTraj)*((sumZ/NumTraj))));
       }
 
       //Remove trajectory points from the mean that are not with one sigma.
@@ -205,9 +205,9 @@ namespace ShowerRecoTools {
 
 
         geo::Vector_t Direction = InitialTrack.DirectionAtPoint(traj).Unit();
-        if((TMath::Abs((Direction-Mean).X()) < 1*RMSX) &&
-            (TMath::Abs((Direction-Mean).Y()) < 1*RMSY) &&
-            (TMath::Abs((Direction-Mean).Z()) < 1*RMSZ)){
+        if((std::abs((Direction-Mean).X()) < 1*RMSX) &&
+            (std::abs((Direction-Mean).Y()) < 1*RMSY) &&
+            (std::abs((Direction-Mean).Z()) < 1*RMSZ)){
           TVector3 Direction_vec = {Direction.X(),Direction.Y(),Direction.Z()};
           if(Direction_vec.Mag() == 0){continue;}
           Direction_Mean += Direction_vec;

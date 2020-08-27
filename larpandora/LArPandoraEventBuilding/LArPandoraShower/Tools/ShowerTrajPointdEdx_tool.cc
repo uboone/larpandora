@@ -227,7 +227,7 @@ namespace ShowerRecoTools{
       TVector3 TrajDirectionYZ = {0,TrajDirection_vec.Y(),TrajDirection_vec.Z()};
       TVector3 PlaneDirection = fGeom->Plane(planeid).GetIncreasingWireDirection();
 
-      if(TMath::Abs((TMath::Pi()/2 - TrajDirectionYZ.Angle(PlaneDirection))) < fMinAngleToWire){
+      if(std::abs((TMath::Pi()/2 - TrajDirectionYZ.Angle(PlaneDirection))) < fMinAngleToWire){
         if (fVerbose)
           mf::LogWarning("ShowerTrajPointdEdx")
             << "remove from angle cut" << std::endl;
@@ -237,7 +237,7 @@ namespace ShowerRecoTools{
       //If the direction is too much into the wire plane then the shaping amplifer cuts the charge. Lets remove these events.
       double velocity = detProp.DriftVelocity(detProp.Efield(), detProp.Temperature());
       double distance_in_x = TrajDirection.X()*(wirepitch/TrajDirection.Dot(PlaneDirection));
-      double time_taken = TMath::Abs(distance_in_x/velocity);
+      double time_taken = std::abs(distance_in_x/velocity);
 
       //Shaping time doesn't seem to exist in a global place so add it as a fcl.
       if(fShapingTime < time_taken){

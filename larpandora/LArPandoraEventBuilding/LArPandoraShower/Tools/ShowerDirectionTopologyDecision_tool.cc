@@ -69,9 +69,8 @@ namespace ShowerRecoTools {
     TVector3 SecondShowerDirectionError;
     ShowerEleHolder.GetElementAndError(fSecondDirectionInputLabel,SecondShowerDirection,SecondShowerDirectionError);
 
-
     //Use the first tool if directions agree within the chosen angle
-    if(TMath::ACos(FirstShowerDirection.Dot(SecondShowerDirection)) < fAngleCut ){
+    if(FirstShowerDirection.Angle(SecondShowerDirection) < fAngleCut ){
       ShowerEleHolder.SetElement(FirstShowerDirection,FirstShowerDirectionError,fShowerDirectionOutputLabel);
     } else {
       ShowerEleHolder.SetElement(SecondShowerDirection,SecondShowerDirectionError,fShowerDirectionOutputLabel);

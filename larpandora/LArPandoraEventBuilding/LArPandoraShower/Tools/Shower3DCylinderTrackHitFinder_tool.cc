@@ -147,7 +147,7 @@ namespace ShowerRecoTools{
       if (fForwardHitsOnly && proj<0)
         continue;
 
-      if (TMath::Abs(proj)<fMaxProjectionDist && TMath::Abs(perp)<fMaxPerpendicularDist)
+      if (std::abs(proj)<fMaxProjectionDist && std::abs(perp)<fMaxPerpendicularDist)
         trackSpacePoints.push_back(spacePoint);
     }
     return trackSpacePoints;

@@ -251,7 +251,7 @@ namespace ShowerRecoTools {
       sum= perp*perp;
       ++counter;
     }
-    double rms = TMath::Sqrt(sum/(counter-1));
+    double rms = std::sqrt(sum/(counter-1));
 
     return rms;
   }

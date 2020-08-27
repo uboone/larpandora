@@ -37,15 +37,15 @@ std::map<int,std::vector<int> > shower::LArPandoraShowerCheatingAlg::GetTrueChai
     const simb::MCParticle *particle = particleIt.second;
     const simb::MCParticle *mother   = particle;
 
-    if(TMath::Abs(particle->PdgCode()) != 11 && TMath::Abs(particle->PdgCode()) != 22){continue;}
+    if(std::abs(particle->PdgCode()) != 11 && std::abs(particle->PdgCode()) != 22){continue;}
 
     // While the grand mother exists and is an electron or photon
     // Note the true mother will skip this loop and fill itself into the map
     while (mother->Mother()!=0 && trueParticles.find(mother->Mother())!= trueParticles.end()){
 
       int motherId = mother->Mother();
-      if (TMath::Abs(trueParticles[motherId]->PdgCode())!=11 &&
-          TMath::Abs(trueParticles[motherId]->PdgCode())!=22){
+      if (std::abs(trueParticles[motherId]->PdgCode())!=11 &&
+          std::abs(trueParticles[motherId]->PdgCode())!=22){
         break;
       }
       mother = trueParticles[motherId];
@@ -94,7 +94,7 @@ void shower::LArPandoraShowerCheatingAlg::CheatDebugEVD(detinfo::DetectorClocksD
   std::map< art::Ptr<recob::SpacePoint>, art::Ptr<recob::Hit> > spacePointHitMap;
   //Get the hits from the true particle
   for (auto hit : hits){
-    int trueParticleID = TMath::Abs(TrueParticleID(clockData, hit));
+    int trueParticleID = std::abs(TrueParticleID(clockData, hit));
     std::vector<art::Ptr<recob::SpacePoint> > sps = fmsph.at(hit.key());
     if (sps.size() == 1){
       art::Ptr<recob::SpacePoint> sp = sps.front();
@@ -276,8 +276,8 @@ std::pair<int,double> shower::LArPandoraShowerCheatingAlg::TrueParticleIDFromTru
     int PlaneID = wireid.Plane;
     std::vector<sim::TrackIDE> trackIDs = bt_serv->HitToTrackIDEs(clockData, hit);
     for (unsigned int idIt = 0; idIt < trackIDs.size(); ++idIt) {
-      trackIDTo3EDepMap[TMath::Abs(trackIDs[idIt].trackID)] += trackIDs[idIt].energy;
-      if(PlaneID == planeid){trackIDToEDepMap[TMath::Abs(trackIDs[idIt].trackID)] += trackIDs[idIt].energy;}
+      trackIDTo3EDepMap[std::abs(trackIDs[idIt].trackID)] += trackIDs[idIt].energy;
+      if(PlaneID == planeid){trackIDToEDepMap[std::abs(trackIDs[idIt].trackID)] += trackIDs[idIt].energy;}
     }
   }
 

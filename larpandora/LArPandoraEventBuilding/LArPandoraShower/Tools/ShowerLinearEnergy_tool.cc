@@ -150,7 +150,7 @@ namespace ShowerRecoTools {
     double totalCharge = 0, totalEnergy = 0;
 
     for (auto const& hit: hits){
-      totalCharge += (hit->Integral() * TMath::Exp((sampling_rate(clockData)* hit->PeakTime()) / (detProp.ElectronLifetime()*1e3) ) );
+      totalCharge += (hit->Integral() * std::exp((sampling_rate(clockData)* hit->PeakTime()) / (detProp.ElectronLifetime()*1e3) ) );
     }
 
     totalEnergy = (totalCharge * fGradients.at(plane)) + fIntercepts.at(plane);
