@@ -3,6 +3,8 @@
 shower::LArPandoraShowerAlg::LArPandoraShowerAlg(const fhicl::ParameterSet& pset):
   fUseCollectionOnly(pset.get<bool>("UseCollectionOnly")),
   fPFParticleLabel(pset.get<art::InputTag> ("PFParticleLabel")),
+  fSCEXFlip(pset.get<bool>("SCEXFlip")),
+  fSCE(lar::providerFrom<spacecharge::SpaceChargeService>()),
   fInitialTrackInputLabel(pset.get<std::string>("InitialTrackInputLabel")),
   fShowerStartPositionInputLabel(pset.get<std::string>("ShowerStartPositionInputLabel")),
   fShowerDirectionInputLabel(pset.get<std::string>("ShowerDirectionInputLabel")),
@@ -358,6 +360,58 @@ double shower::LArPandoraShowerAlg::SpacePointPerpendicular(art::Ptr<recob::Spac
   return pos.Mag();
 }
 
+double shower::LArPandoraShowerAlg::SCECorrectPitch(double const& pitch, TVector3 const& pos,
+    TVector3 const& dir, unsigned int const& TPC) const {
+  const geo::Point_t geoPos{pos.X(), pos.Y(), pos.z()};
+  const geo::Vector_t geoDir{dir.X(), dir.Y(), dir.Z()};
+  return shower::LArPandoraShowerAlg::SCECorrectPitch(pitch, geoPos, geoDir, TPC);
+}
+double shower::LArPandoraShowerAlg::SCECorrectPitch(double const& pitch, geo::Point_t const& pos,
+    geo::Vector_t const& dir, unsigned int const& TPC) const {
+
+  if (!fSCE || !fSCE->EnableCalSpatialSCE()){
+    throw cet::exception("LArPandoraShowerALG") << "Trying to correct SCE pitch when service is not configured"
+      << std::endl;
+  }
+  // As the input pos is sce corrected already, find uncorrected pos
+  const geo::Point_t uncorrectedPos = pos + fSCE->GetPosOffsets(pos);
+  //Get the size of the correction at pos
+  const geo::Vector_t posOffset = fSCE->GetCalPosOffsets(uncorrectedPos, TPC);
+
+  //Get the position of next hit
+  const geo::Point_t nextPos = uncorrectedPos + pitch*dir;
+  //Get the offsets at the next pos
+  const geo::Vector_t nextPosOffset = fSCE->GetCalPosOffsets(nextPos, TPC);
+
+  //Calculate the corrected pitch
+  const int xFlip(fSCEXFlip ? -1 : 1);
+  geo::Vector_t pitchVec {pitch*dir.X() + xFlip*(nextPosOffset.X() - posOffset.X()),
+    pitch*dir.Y() + (nextPosOffset.Y() - posOffset.Y()),
+    pitch*dir.Z() + (nextPosOffset.Z() - posOffset.Z())};
+
+  return pitchVec.r();
+}
+
+double shower::LArPandoraShowerAlg::SCECorrectEField(double const& EField, TVector3 const& pos) const {
+  const geo::Point_t geoPos{pos.X(), pos.Y(), pos.z()};
+  return shower::LArPandoraShowerAlg::SCECorrectEField(EField, geoPos);
+}
+double shower::LArPandoraShowerAlg::SCECorrectEField(double const& EField, geo::Point_t const& pos) const {
+
+  // Check the space charge service is properly configured
+  if (!fSCE || !fSCE->EnableSimEfieldSCE()){
+    throw cet::exception("LArPandoraShowerALG") << "Trying to correct SCE EField when service is not configured"
+      << std::endl;
+  }
+  // Gets relative E field Distortions
+  geo::Vector_t EFieldOffsets = fSCE->GetEfieldOffsets(pos);
+  // Add 1 in X direction as this is the direction of the drift field
+  EFieldOffsets += geo::Vector_t{1, 0, 0};
+  // Convert to Absolute E Field from relative
+  EFieldOffsets *= EField;
+  // We only care about the magnitude for recombination
+  return EFieldOffsets.r();
+}
 
 void shower::LArPandoraShowerAlg::DebugEVD(art::Ptr<recob::PFParticle> const& pfparticle,
     art::Event const& Event,

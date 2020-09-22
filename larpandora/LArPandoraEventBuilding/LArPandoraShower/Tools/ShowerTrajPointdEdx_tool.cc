@@ -16,6 +16,7 @@
 #include "larpandora/LArPandoraEventBuilding/LArPandoraShower/Tools/IShowerTool.h"
 #include "larreco/Calorimetry/CalorimetryAlg.h"
 #include "lardataobj/RecoBase/Track.h"
+#include "lardataobj/AnalysisBase/T0.h"
 
 namespace ShowerRecoTools{
 
@@ -54,6 +55,11 @@ namespace ShowerRecoTools{
       bool fUseMedian;        //Use the median value as the dEdx rather than the mean.
       bool fCutStartPosition; //Remove hits using MinDistCutOff from the vertex as well.
 
+      bool fT0Correct;        // Whether to look for a T0 associated to the PFP
+      bool fSCECorrectPitch;  // Whether to correct the "squeezing" of pitch, requires corrected input
+      bool fSCECorrectEField; // Whether to use the local electric field, from SpaceChargeService, in recombination calc.
+      bool fSCEInputCorrected; // Whether the input has already been corrected for spatial SCE distortions
+
       art::InputTag fPFParticleLabel;
       int           fVerbose;
 
@@ -77,6 +83,10 @@ namespace ShowerRecoTools{
     fdEdxCut(pset.get<float>("dEdxCut")),
     fUseMedian(pset.get<bool>("UseMedian")),
     fCutStartPosition(pset.get<bool>("CutStartPosition")),
+    fT0Correct(pset.get<bool>("T0Correct")),
+    fSCECorrectPitch(pset.get<bool>("SCECorrectPitch")),
+    fSCECorrectEField(pset.get<bool>("SCECorrectEField")),
+    fSCEInputCorrected(pset.get<bool>("SCEInputCorrected")),
     fPFParticleLabel(pset.get<art::InputTag>("PFParticleLabel")),
     fVerbose(pset.get<int>("Verbose")),
     fShowerStartPositionInputLabel(pset.get<std::string>("ShowerStartPositionInputLabel")),
@@ -86,6 +96,10 @@ namespace ShowerRecoTools{
     fShowerBestPlaneOutputLabel(pset.get<std::string>("ShowerBestPlaneOutputLabel")),
     fShowerdEdxVecOutputLabel(pset.get<std::string>("ShowerdEdxVecOutputLabel"))
   {
+    if ((fSCECorrectPitch || fSCECorrectEField) && !fSCEInputCorrected) {
+      throw cet::exception("ShowerTrajPointdEdx") << "Can only correct for SCE if input is already corrected"
+        << std::endl;
+    }
   }
 
   int ShowerTrajPointdEdx::CalculateElement(const art::Ptr<recob::PFParticle>& pfparticle,
@@ -122,6 +136,10 @@ namespace ShowerRecoTools{
       return 0;
     }
 
+    auto const pfpHandle = Event.getValidHandle<std::vector<recob::PFParticle> >(fPFParticleLabel);
+    const art::FindManyP<anab::T0>& fmpfpt0 = ShowerEleHolder.GetFindManyP<anab::T0>(
+        pfpHandle, Event, fPFParticleLabel);
+
     // Get the spacepoints
     auto const spHandle = Event.getValidHandle<std::vector<recob::SpacePoint> >(fPFParticleLabel);
 
@@ -137,6 +155,14 @@ namespace ShowerRecoTools{
     //Get the initial track
     recob::Track InitialTrack;
     ShowerEleHolder.GetElement(fInitialTrackInputLabel,InitialTrack);
+
+    double pfpT0Time(0); // If no T0 found, assume the particle happened at trigger time (0)
+    if (fT0Correct){
+      std::vector<art::Ptr<anab::T0> > pfpT0Vec = fmpfpt0.at(pfparticle.key());
+      if (pfpT0Vec.size()==1) {
+        pfpT0Time = pfpT0Vec.front()->Time();
+      }
+    }
 
     //Don't care that I could use a vector.
     std::map<int,std::vector<double > > dEdx_vec;
@@ -171,7 +197,8 @@ namespace ShowerRecoTools{
       if (TPC !=vtxTPC){continue;}
 
       //Ignore spacepoints within a few wires of the vertex.
-      double dist_from_start = (IShowerTool::GetLArPandoraShowerAlg().SpacePointPosition(sp) - ShowerStartPosition).Mag();
+      const TVector3 pos = IShowerTool::GetLArPandoraShowerAlg().SpacePointPosition(sp);
+      double dist_from_start = (pos - ShowerStartPosition).Mag();
 
       if(fCutStartPosition){
         if(dist_from_start < fMinDistCutOff*wirepitch){continue;}
@@ -193,10 +220,10 @@ namespace ShowerRecoTools{
         if(flags.isSet(recob::TrajectoryPointFlagTraits::NoPoint))
         {continue;}
 
-        TVector3 pos = IShowerTool::GetLArPandoraShowerAlg().SpacePointPosition(sp) - TrajPosition;
+        const TVector3 dist = pos - TrajPosition;
 
-        if(pos.Mag() < MinDist && pos.Mag()< MaxDist*wirepitch){
-          MinDist = pos.Mag();
+        if(dist.Mag() < MinDist && dist.Mag()< MaxDist*wirepitch){
+          MinDist = dist.Mag();
           index = traj;
         }
       }
@@ -256,11 +283,20 @@ namespace ShowerRecoTools{
       //If we still exist then we can be used in the calculation. Calculate the 3D pitch
       double trackpitch = (TrajDirection*(wirepitch/TrajDirection.Dot(PlaneDirection))).Mag();
 
+      if (fSCECorrectPitch){
+        trackpitch = IShowerTool::GetLArPandoraShowerAlg().SCECorrectPitch(trackpitch, pos,
+            TrajDirection.Unit(), hit->WireID().TPC);
+      }
+
       //Calculate the dQdx
       double dQdx = hit->Integral()/trackpitch;
 
       //Calculate the dEdx
-      double dEdx = fCalorimetryAlg.dEdx_AREA(clockData, detProp, dQdx, hit->PeakTime(), planeid.Plane);
+      double localEField = detProp.Efield();
+      if (fSCECorrectEField){
+        localEField = IShowerTool::GetLArPandoraShowerAlg().SCECorrectEField(localEField, pos);
+      }
+      double dEdx = fCalorimetryAlg.dEdx_AREA(clockData, detProp, dQdx, hit->PeakTime(), planeid.Plane, pfpT0Time, localEField);
 
       //Add the value to the dEdx
       dEdx_vec[planeid.Plane].push_back(dEdx);

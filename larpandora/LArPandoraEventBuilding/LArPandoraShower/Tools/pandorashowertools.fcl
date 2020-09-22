@@ -281,6 +281,10 @@ showertrajpointdedx:{
     dEdxCut:               999.
     CutStartPosition:     false #Remove hits using MinDistCutOff from the vertex as well
     UseMedian:            true  #Use the median dEdx rather the mean.
+    T0Correct:            false
+    SCECorrectPitch:      false
+    SCECorrectEField:     false
+    SCEInputCorrected:    false
     # PFParticleLabel: "pandora"
     ShowerStartPositionInputLabel: "ShowerStartPosition"
     InitialTrackSpacePointsInputLabel: "InitialTrackSpacePoints"
