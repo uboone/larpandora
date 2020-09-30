@@ -3,6 +3,7 @@ standard_larpandorashoweralg:
 {
   UseCollectionOnly: false #Only use the collection charge infromation.
   # PFParticleLabel: "pandora"
+  SCEXFlip:          false
   InitialTrackInputLabel: "InitialTrack"
   ShowerStartPositionInputLabel: "ShowerStartPosition"
   ShowerDirectionInputLabel: "ShowerDirection"
