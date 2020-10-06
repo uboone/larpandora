@@ -335,7 +335,7 @@ showerbayesiantrucatingdedx:{
     PostiorCut: 0.01
     nSkipHits: 2
     ShowerdEdxOutputLabel: "ShowerdEdx"
-    PriorFname: "dEdx_plots.root"
+    PriorFname: @nil
     PriorElectronHistoName: "electron_dedx"
     PriorPhotonHistoName: "photon_dedx"
     DefineBestPlane: false
