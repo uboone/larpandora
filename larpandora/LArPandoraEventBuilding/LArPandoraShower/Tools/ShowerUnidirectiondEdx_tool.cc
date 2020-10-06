@@ -218,6 +218,13 @@ namespace ShowerRecoTools{
       ShowerEleHolder.SetElement(bestPlane,fShowerBestPlaneOutputLabel);
     }
 
+    if (fVerbose>1){
+      std::cout << "Best Plane: " << bestPlane << std::endl;
+      for(unsigned int plane=0; plane<dEdxVec.size(); plane++){
+        std::cout << "Plane: " << plane<< " with dEdx: " << dEdxVec[plane] << std::endl;
+      }
+    }
+
     return 0;
 
   }
