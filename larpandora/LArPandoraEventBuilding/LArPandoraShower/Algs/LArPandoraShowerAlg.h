@@ -20,6 +20,8 @@
 #include "larpandora/LArPandoraEventBuilding/LArPandoraShower/Algs/ShowerElementHolder.hh"
 #include "lardataalg/DetectorInfo/DetectorClocksData.h"
 #include "lardataalg/DetectorInfo/DetectorPropertiesData.h"
+#include "larevt/SpaceCharge/SpaceCharge.h"
+#include "larevt/SpaceChargeServices/SpaceChargeService.h"
 
 //C++ Includes
 #include <iostream>
@@ -98,6 +100,13 @@ class shower::LArPandoraShowerAlg {
     double SpacePointPerpendicular(art::Ptr<recob::SpacePoint> const& sp, TVector3 const& vertex,
         TVector3 const& direction, double proj) const;
 
+  // The SCE service requires thing in geo::Point/Vector form, so overload and be nice
+    double SCECorrectPitch(double const& pitch, TVector3 const& pos, TVector3 const& dir, unsigned int const& TPC) const;
+    double SCECorrectPitch(double const& pitch, geo::Point_t const& pos, geo::Vector_t const& dir, unsigned int const& TPC) const;
+
+    double SCECorrectEField(double const& EField, TVector3 const& pos) const;
+    double SCECorrectEField(double const& EField, geo::Point_t const& pos) const;
+
     void DebugEVD(art::Ptr<recob::PFParticle> const& pfparticle,
         art::Event const& Event,
         const reco::shower::ShowerElementHolder& ShowerEleHolder,
@@ -105,8 +114,11 @@ class shower::LArPandoraShowerAlg {
 
   private:
 
-    bool fUseCollectionOnly;
-    art::InputTag                           fPFParticleLabel;
+    bool          fUseCollectionOnly;
+    art::InputTag fPFParticleLabel;
+    bool          fSCEXFlip; // If a (legacy) flip is needed in x componant of spatial SCE correction
+
+    spacecharge::SpaceCharge const*         fSCE;
     art::ServiceHandle<geo::Geometry const> fGeom;
     art::ServiceHandle<art::TFileService>   tfs;
 
