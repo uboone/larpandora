@@ -129,8 +129,6 @@ namespace ShowerRecoTools {
       }
     }
 
-    //TODO
-
     ShowerEleHolder.SetElement(energyVec, energyError, fShowerEnergyOutputLabel);
     // Only set the best plane if it has some hits in it
     if (bestPlane!=-999){
