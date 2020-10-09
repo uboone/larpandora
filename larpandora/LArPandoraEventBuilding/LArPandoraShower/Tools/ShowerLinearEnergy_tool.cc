@@ -32,7 +32,7 @@ namespace ShowerRecoTools {
       double CalculateEnergy(const detinfo::DetectorClocksData& clockData,
           const detinfo::DetectorPropertiesData& detProp,
           const std::vector<art::Ptr<recob::Hit> >& hits,
-          const int plane);
+          const geo::PlaneID::PlaneID_t plane) const;
 
       //fcl parameters
       unsigned int        fNumPlanes;
@@ -88,7 +88,7 @@ namespace ShowerRecoTools {
         clusHandle, Event, fPFParticleLabel);
     // art::FindManyP<recob::Hit> fmhc(clusHandle, Event, fPFParticleLabel);
 
-    std::map<unsigned int, std::vector<art::Ptr<recob::Hit> > > planeHits;
+    std::map<geo::PlaneID::PlaneID_t, std::vector<art::Ptr<recob::Hit> > > planeHits;
 
     //Loop over the clusters in the plane and get the hits
     for(auto const& cluster: clusters){
@@ -97,13 +97,13 @@ namespace ShowerRecoTools {
       std::vector<art::Ptr<recob::Hit> > hits = fmhc.at(cluster.key());
 
       //Get the plane.
-      unsigned int plane = cluster->Plane().Plane;
+      const geo::PlaneID::PlaneID_t plane(cluster->Plane().Plane);
 
       planeHits[plane].insert(planeHits[plane].end(),hits.begin(),hits.end());
     }
 
     // Calculate the energy fro each plane && best plane
-    int bestPlane                 = -999;
+    geo::PlaneID::PlaneID_t bestPlane  = std::numeric_limits<geo::PlaneID::PlaneID_t>::max();
     unsigned int bestPlaneNumHits = 0;
 
     //Holder for the final product
@@ -131,8 +131,11 @@ namespace ShowerRecoTools {
 
     ShowerEleHolder.SetElement(energyVec, energyError, fShowerEnergyOutputLabel);
     // Only set the best plane if it has some hits in it
-    if (bestPlane!=-999){
-      ShowerEleHolder.SetElement(bestPlane, fShowerBestPlaneOutputLabel);
+    if (bestPlane < fGeom->Nplanes()){
+      // Need to cast as an int for legacy default of -999
+      // have to define a new variable as we pass-by-reference when filling
+      int bestPlaneVal(bestPlane);
+      ShowerEleHolder.SetElement(bestPlaneVal, fShowerBestPlaneOutputLabel);
     }
 
     return 0;
@@ -143,7 +146,7 @@ namespace ShowerRecoTools {
   double ShowerLinearEnergy::CalculateEnergy(const detinfo::DetectorClocksData& clockData,
           const detinfo::DetectorPropertiesData& detProp,
           const std::vector<art::Ptr<recob::Hit> >& hits,
-          int plane) {
+          const geo::PlaneID::PlaneID_t plane) const {
 
     double totalCharge = 0, totalEnergy = 0;
 
