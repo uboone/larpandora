@@ -102,13 +102,13 @@ namespace ShowerRecoTools {
       planeHits[plane].insert(planeHits[plane].end(),hits.begin(),hits.end());
     }
 
-    // Calculate the energy fro each plane && best plane
+    // Calculate the energy for each plane && best plane
     geo::PlaneID::PlaneID_t bestPlane  = std::numeric_limits<geo::PlaneID::PlaneID_t>::max();
     unsigned int bestPlaneNumHits = 0;
 
     //Holder for the final product
-    std::vector<double> energyVec(fNumPlanes, -999);
-    std::vector<double> energyError(fNumPlanes, -999);
+    std::vector<double> energyVec(fNumPlanes, -999.);
+    std::vector<double> energyError(fNumPlanes, -999.);
 
     auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(Event);
     auto const detProp   = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(Event, clockData);
