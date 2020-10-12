@@ -44,6 +44,8 @@ showernumelectronsenergy:{
      CalorimetryAlg: @nil
      RecombinationFactor: 0.64
      # PFParticleLabel: "pandora"
+     ShowerEnergyOutputLabel: "ShowerEnergy"
+     ShowerBestPlaneOutputLabel: "ShowerBestPlane"
  }
 
 
