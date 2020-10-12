@@ -52,7 +52,6 @@ namespace ShowerRecoTools {
       calo::CalorimetryAlg              fCalorimetryAlg;
 
       // Declare stuff
-      double Energy = 0;
       double fRecombinationFactor;
   };
 
