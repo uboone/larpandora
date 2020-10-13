@@ -274,11 +274,10 @@ namespace ShowerRecoTools{
         continue;
       }
 
-      //Iterate the number of hits on the plane
-      ++num_hits[planeid.Plane];
-
       if((TrajPosition-TrajPositionStart).Mag() > dEdxTrackLength){continue;}
 
+      //Iterate the number of hits on the plane
+      ++num_hits[planeid.Plane];
 
       //If we still exist then we can be used in the calculation. Calculate the 3D pitch
       double trackpitch = (TrajDirection*(wirepitch/TrajDirection.Dot(PlaneDirection))).Mag();
@@ -302,47 +301,37 @@ namespace ShowerRecoTools{
       dEdx_vec[planeid.Plane].push_back(dEdx);
     }
 
+    //Choose max hits based on hitnum
+    int max_hits   = 0;
+    int best_plane = -std::numeric_limits<int>::max();
+    for(auto const& [plane, numHits] : num_hits){
+      if (fVerbose>2)
+        std::cout << "Plane: " << plane << " with size: " << numHits << std::endl;
+      if(numHits > max_hits){
+        best_plane = plane;
+        max_hits   = numHits;
+      }
+    }
+
+    if (best_plane < 0){
+      if (fVerbose)
+        mf::LogError("ShowerTrajPointdEdx") << "No hits in any plane, returning "<< std::endl;
+      return 1;
+    }
+
     //Search for blow ups and gradient changes.
     //Electrons have a very flat dEdx as function of energy till ~10MeV.
     //If there is a sudden jump particle has probably split
     //If there is very large dEdx we have either calculated it wrong (probably) or the Electron is coming to end.
     //Assumes hits are ordered!
     std::map<int,std::vector<double > > dEdx_vec_cut;
-
     for(geo::PlaneID plane_id: fGeom->IteratePlaneIDs()){
       dEdx_vec_cut[plane_id.Plane] = {};
     }
 
-    // int max_hits   = -999;
-    // int best_plane = -999;
-    // for(auto const& dEdx_plane: dEdx_vec){
-    //   if((int) dEdx_plane.second.size() > max_hits){
-    //     best_plane = dEdx_plane.first;
-    //     max_hits   = dEdx_plane.second.size();
-    //   }
-    // }
-
-    //Choose max hits based on hitnum
-    int max_hits   = -999;
-    int best_plane = -999;
-    for(auto const& num_hits_plane: num_hits){
-      if(num_hits_plane.second > max_hits){
-        best_plane = num_hits_plane.first;
-        max_hits   = num_hits_plane.second;
-      }
-    }
-
-    if (max_hits == -999){
-      if (fVerbose)
-        mf::LogError("ShowerTrajPointdEdx") << "No hits in any plane, returning "<< std::endl;
-      return 1;
-    }
-
-
     for(auto& dEdx_plane: dEdx_vec){
       FinddEdxLength(dEdx_plane.second, dEdx_vec_cut[dEdx_plane.first]);
     }
-
 
     //Never have the stats to do a landau fit and get the most probable value. User decides if they want the median value or the mean.
     std::vector<double> dEdx_val;
@@ -370,10 +359,14 @@ namespace ShowerRecoTools{
     }
 
     if (fVerbose>1){
-      for(auto const& plane: dEdx_vec_cut){
-        std::cout << "#Plane: " << plane.first << " #" << std::endl;
-        for(auto const& dEdx: plane.second){
-          std::cout << "dEdx: " << dEdx << std::endl;
+      std::cout << "#Best Plane: " << best_plane << std::endl;
+      for(unsigned int plane=0; plane<dEdx_vec.size(); plane++){
+        std::cout << "#Plane: " << plane<< " #" << std::endl;
+        std::cout << "#Median: " << dEdx_val[plane] << " #" << std::endl;
+        if (fVerbose>2){
+          for(auto const& dEdx: dEdx_vec_cut[plane]){
+            std::cout << "dEdx: " << dEdx << std::endl;
+          }
         }
       }
     }

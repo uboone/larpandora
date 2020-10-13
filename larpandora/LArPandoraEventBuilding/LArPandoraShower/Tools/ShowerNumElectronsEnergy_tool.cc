@@ -38,31 +38,29 @@ namespace ShowerRecoTools {
 
       double CalculateEnergy(const detinfo::DetectorClocksData& clockData,
           const detinfo::DetectorPropertiesData& detProp,
-          std::vector<art::Ptr<recob::Hit> >& hits,
-          geo::View_t& view);
+          const std::vector<art::Ptr<recob::Hit> >& hits,
+          const geo::PlaneID::PlaneID_t plane) const;
 
       art::InputTag fPFParticleLabel;
       int fVerbose;
+
+      std::string fShowerEnergyOutputLabel;
+      std::string fShowerBestPlaneOutputLabel;
 
       //Services
       art::ServiceHandle<geo::Geometry> fGeom;
       calo::CalorimetryAlg              fCalorimetryAlg;
 
       // Declare stuff
-      double Energy = 0;
       double fRecombinationFactor;
-
-      // vec to store subrun #, event #, shower #, # of hits and energy
-      std::vector<std::tuple<int, int, int, int, double>> n_hit_energy; // more useful when making plots
-
-      int showernum = 0;
-
   };
 
   ShowerNumElectronsEnergy::ShowerNumElectronsEnergy(const fhicl::ParameterSet& pset) :
     IShowerTool(pset.get<fhicl::ParameterSet>("BaseTools")),
     fPFParticleLabel(pset.get<art::InputTag>("PFParticleLabel")),
     fVerbose(pset.get<int>("Verbose")),
+    fShowerEnergyOutputLabel(pset.get<std::string>("ShowerEnergyOutputLabel")),
+    fShowerBestPlaneOutputLabel(pset.get<std::string>("ShowerBestPlaneOutputLabel")),
     fCalorimetryAlg(pset.get<fhicl::ParameterSet>("CalorimetryAlg")),
     fRecombinationFactor(pset.get<double>("RecombinationFactor"))
   {
@@ -76,27 +74,8 @@ namespace ShowerRecoTools {
     if (fVerbose)
       std::cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Shower Reco Energy Tool ~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << std::endl;
 
-    // get shower number per event
-    showernum = ShowerEleHolder.GetShowerNumber();
-
-    // get subrun number
-    art::SubRunNumber_t subRunN = Event.subRun();
-
-    // get event number
-    art::EventNumber_t EventN = Event.id().event();
-
-    //ShowerEleHolder.PrintElements();
-
-    //Holder for the final product
-    std::vector<double> ShowerNumElectronsEnergy;
-
-    // Get the number of planes
-    unsigned int numPlanes = fGeom->Nplanes();
-
     // Get the assocated pfParicle vertex PFParticles
     auto const pfpHandle = Event.getValidHandle<std::vector<recob::PFParticle> >(fPFParticleLabel);
-
-    std::map<geo::View_t, std::vector<art::Ptr<recob::Hit> > > view_hits;
 
     //Get the clusters
     auto const clusHandle = Event.getValidHandle<std::vector<recob::Cluster> >(fPFParticleLabel);
@@ -111,108 +90,64 @@ namespace ShowerRecoTools {
         clusHandle, Event, fPFParticleLabel);
     // art::FindManyP<recob::Hit> fmhc(clusHandle, Event, fPFParticleLabel);
 
-    std::vector<std::vector<art::Ptr<recob::Hit> > > trackHits;
-    trackHits.resize(numPlanes);
-
+    std::map<geo::PlaneID::PlaneID_t, std::vector<art::Ptr<recob::Hit> > > planeHits;
 
     //Loop over the clusters in the plane and get the hits
     for(auto const& cluster: clusters){
 
       //Get the hits
       std::vector<art::Ptr<recob::Hit> > hits = fmhc.at(cluster.key());
-      if(hits.empty()){
-        if (fVerbose)
-          mf::LogWarning("ShowerNumElectronsEnergy") << "No hit for the cluster. This suggest the find many is wrong."<< std::endl;
-        continue;
-      }
 
-      //Get the view. geo::View_t view = cluster->View();
-      geo::View_t view = cluster->View();
-      //std::cout << "view = " << view << " hits = " << hits.size() << std::endl;
+      //Get the plane.
+      const geo::PlaneID::PlaneID_t plane(cluster->Plane().Plane);
 
-      view_hits[view].insert(view_hits[view].end(),hits.begin(),hits.end());
-
+      planeHits[plane].insert(planeHits[plane].end(),hits.begin(),hits.end());
     }
 
-    std::map<unsigned int, double > view_energies;
-    std::vector<art::Ptr<recob::Hit>> hits;
+    // Calculate the energy for each plane && best plane
+    geo::PlaneID::PlaneID_t bestPlane  = std::numeric_limits<geo::PlaneID::PlaneID_t>::max();
+    unsigned int bestPlaneNumHits = 0;
+
+    //Holder for the final product
+    std::vector<double> energyVec(fGeom->Nplanes(), -999.);
+    std::vector<double> energyError(fGeom->Nplanes(), -999.);
 
     auto const clockData = art::ServiceHandle<detinfo::DetectorClocksService const>()->DataFor(Event);
     auto const detProp   = art::ServiceHandle<detinfo::DetectorPropertiesService const>()->DataFor(Event, clockData);
 
-    //Accounting for events crossing the cathode.
-    for(auto const& view_hit_iter: view_hits){
+    for(auto const& [plane, hits]: planeHits){
 
-      hits = view_hit_iter.second;
-      geo::View_t view = view_hit_iter.first;
+      unsigned int planeNumHits = hits.size();
 
-      //Calculate the Energy
-      Energy = CalculateEnergy(clockData, detProp, hits,view);
-      //std::cout << "hits = " << hits.size() << std::endl;
+      //Calculate the Energy for
+      double Energy = CalculateEnergy(clockData, detProp, hits, plane);
+      // If the energy is negative, leave it at -999
+      if (Energy>0)
+        energyVec.at(plane) = Energy;
 
-      // Print out the energy for each plane
-      if (fVerbose)
-        std::cout<<"View: "<< view <<  " and energy: "<<Energy<<std::endl;;
-
-      unsigned int viewNum = view;
-      view_energies[viewNum] = Energy;
-
-    }
-
-    //TODO think of a better way of doing this
-    for (unsigned int plane=0; plane<numPlanes; ++plane) {
-
-      try{
-        Energy = view_energies.at(plane);
-        if (Energy<0){
-          if (fVerbose)
-            mf::LogWarning("ShowerNumElectronsEnergy") << "Negative shower energy: "<<Energy;
-          Energy=-999;
-        }
-        if(plane == 2){
-          n_hit_energy.push_back(std::make_tuple(subRunN ,EventN, showernum, hits.size(), Energy)); //save info for collection plane
-        }
-      }
-
-      catch(...){
-        if (fVerbose)
-          mf::LogWarning("ShowerNumElectronsEnergy") <<"No energy calculation for plane "<<plane<<std::endl;
-        // if there's no calculation, set the energy to -999.
-        Energy = -999;
-        if(plane == 2){
-          n_hit_energy.push_back(std::make_tuple(subRunN, EventN, showernum, hits.size(), Energy)); //save info for collection plane
-        }
-      }
-      ShowerNumElectronsEnergy.push_back(Energy);
-    }
-
-    if(ShowerNumElectronsEnergy.empty()){
-      throw cet::exception("ShowerNumElectronsEnergy") << "Energy Vector is empty";
-    }
-
-    std::vector<double> EnergyError = {-999,-999,-999};
-
-    ShowerEleHolder.SetElement(ShowerNumElectronsEnergy,EnergyError,"ShowerEnergy");
-
-
-    bool write_to_file = false;
-    // Make a .txt file with the subrun, event number, showernum, hits and energies from the plane
-    // Useful info when making plots
-    if(write_to_file){
-      std::ofstream outfile;
-      outfile.open("reco_hit_energy_vec.txt");
-      for (auto i = n_hit_energy.begin(); i != n_hit_energy.end(); ++i){
-        outfile << std::get<0>(*i) << "   " << std::get<1>(*i) << "   " << std::get<2>(*i) << "   " << std::get<3>(*i) << "   " << std::get<4>(*i) << std::endl;
+      if (planeNumHits > bestPlaneNumHits) {
+        bestPlane        = plane;
+        bestPlaneNumHits = planeNumHits;
       }
     }
+
+    ShowerEleHolder.SetElement(energyVec, energyError, fShowerEnergyOutputLabel);
+    // Only set the best plane if it has some hits in it
+    if (bestPlane < fGeom->Nplanes()){
+      // Need to cast as an int for legacy default of -999
+      // have to define a new variable as we pass-by-reference when filling
+      int bestPlaneVal(bestPlane);
+      ShowerEleHolder.SetElement(bestPlaneVal, fShowerBestPlaneOutputLabel);
+    }
+
     return 0;
   }
 
   // function to calculate the reco energy
   double ShowerNumElectronsEnergy::CalculateEnergy(const detinfo::DetectorClocksData& clockData,
           const detinfo::DetectorPropertiesData& detProp,
-          std::vector<art::Ptr<recob::Hit> >& hits,
-          geo::View_t& view){
+          const std::vector<art::Ptr<recob::Hit> >& hits,
+          const geo::PlaneID::PlaneID_t plane) const {
 
     double totalCharge = 0;
     double totalEnergy = 0;
@@ -226,7 +161,7 @@ namespace ShowerRecoTools {
     // correct charge due to recombination
     correctedtotalCharge = totalCharge / fRecombinationFactor;
     // calculate # of electrons and the corresponding energy
-    nElectrons = fCalorimetryAlg.ElectronsFromADCArea(correctedtotalCharge, view);
+    nElectrons = fCalorimetryAlg.ElectronsFromADCArea(correctedtotalCharge, plane);
     totalEnergy = (nElectrons / util::kGeVToElectrons) * 1000; // energy in MeV
     return totalEnergy;
   }
