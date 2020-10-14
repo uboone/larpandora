@@ -63,6 +63,9 @@ DEFINE_ART_MODULE(StandardPandora)
 #include "larpandoracontent/LArPlugins/LArPseudoLayerPlugin.h"
 #include "larpandoracontent/LArPlugins/LArRotationalTransformationPlugin.h"
 
+#ifdef LIBTORCH_DL
+    #include "larpandoradlcontent/LArDLContent.h"
+#endif
 
 namespace lar_pandora
 {
@@ -85,6 +88,9 @@ void StandardPandora::CreatePandoraInstances()
 {
     m_pPrimaryPandora = new pandora::Pandora();
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=, LArContent::RegisterAlgorithms(*m_pPrimaryPandora));
+#ifdef LIBTORCH_DL
+    PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=, LArDLContent::RegisterAlgorithms(*m_pPrimaryPandora));
+#endif
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=, LArContent::RegisterBasicPlugins(*m_pPrimaryPandora));
 
     // ATTN Potentially ill defined, unless coordinate system set up to ensure that all drift volumes have same wire angles and pitches
@@ -143,6 +149,12 @@ void StandardPandora::ProvideExternalSteeringParameters(const pandora::Pandora *
     pEventSteeringParameters->m_shouldPerformSliceId = m_shouldPerformSliceId;
     pEventSteeringParameters->m_printOverallRecoStatus = m_printOverallRecoStatus;
     PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=, pandora::ExternallyConfiguredAlgorithm::SetExternalParameters(*pPandora, "LArMaster", pEventSteeringParameters));
+
+#ifdef LIBTORCH_DL
+    auto *const pEventSettingsParametersCopy = new lar_content::MasterAlgorithm::ExternalSteeringParameters(*pEventSteeringParameters);
+    PANDORA_THROW_RESULT_IF(pandora::STATUS_CODE_SUCCESS, !=, pandora::ExternallyConfiguredAlgorithm::SetExternalParameters(*pPandora,
+        "LArDLMaster", pEventSettingsParametersCopy));
+#endif
 }
 
 } // namespace lar_pandora
