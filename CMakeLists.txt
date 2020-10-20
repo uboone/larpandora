@@ -59,11 +59,6 @@ cet_find_library( PANDORAMONITORING NAMES PandoraMonitoring PATHS ENV PANDORA_LI
 #message(STATUS "larpandora: checking for MRB_SOURCE")
 set( mrb_source $ENV{MRB_SOURCE} )
 
-option(PANDORA_LIBTORCH "Flag for building with Pandora's LibTorch-aware algorithms" ON)
-if(${PANDORA_LIBTORCH})
-  add_definitions("-DLIBTORCH_DL")
-endif()
-
 if( LARPANDORACONTENT_INC )
   #message(STATUS "larpandora: found LARPANDORACONTENT_INC: $ENV{LARPANDORACONTENT_INC}")
   # note that mrb v1_07_00 or later will define LARPANDORACONTENT_INC
