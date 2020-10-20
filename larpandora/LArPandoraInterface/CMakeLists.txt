@@ -36,11 +36,15 @@ set(CORE_LIB_LIST
     ROOT::Geom
     ${ROOT_BASIC_LIB_LIST})
 
-if(${PANDORA_LIBTORCH})
+option(PANDORA_LIBTORCH "Flag for building with Pandora's LibTorch-aware algorithms" ON)
+if( ${PANDORA_LIBTORCH} AND DEFINED ENV{LIBTORCH_DIR})
+    message(STATUS "Building with deep learning support")
+    add_definitions("-DLIBTORCH_DL")
     art_make(
         LIB_LIBRARIES ${CORE_LIB_LIST} LArPandoraDLContent
         MODULE_LIBRARIES larpandora_LArPandoraInterface)
 else()
+    message( STATUS "Building without deep learning support" )
     art_make(
         LIB_LIBRARIES ${CORE_LIB_LIST}
         MODULE_LIBRARIES larpandora_LArPandoraInterface)
