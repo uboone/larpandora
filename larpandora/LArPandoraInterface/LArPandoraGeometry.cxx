@@ -92,16 +92,14 @@ namespace lar_pandora {
         for (LArDaughterDriftVolumeList::const_iterator iterDghtr1 = driftVolume1.GetTpcVolumeList().begin(),
              iterDghtrEnd1 = driftVolume1.GetTpcVolumeList().end();
              iterDghtr1 != iterDghtrEnd1; 
-             ++iterDghtr1)
-        {
-            const LArDaughterDriftVolume &tpcVolume1(*iterDghtr1);
+             ++iterDghtr1) {
+          const LArDaughterDriftVolume &tpcVolume1(*iterDghtr1);
 
           for (LArDaughterDriftVolumeList::const_iterator iterDghtr2 = iterDghtr1,
                iterDghtrEnd2 = driftVolume1.GetTpcVolumeList().end();
                iterDghtr2 != iterDghtrEnd2;
-               ++iterDghtr2)
-          {
-              const LArDaughterDriftVolume &tpcVolume2(*iterDghtr2);
+               ++iterDghtr2) {
+            const LArDaughterDriftVolume &tpcVolume2(*iterDghtr2);
 
             if (tpcVolume1.GetTpc() == tpcVolume2.GetTpc())
               continue;
@@ -197,14 +195,13 @@ namespace lar_pandora {
 
     for (LArDaughterDriftVolumeList::const_iterator iterDghtr = iter->second.GetTpcVolumeList().begin(),
          iterDghtrEnd = iter->second.GetTpcVolumeList().end(); 
-         iterDghtr != iterDghtrEnd; ++iterDghtr)
-    {
-        const LArDaughterDriftVolume &daughterVolume(*iterDghtr);
+         iterDghtr != iterDghtrEnd; ++iterDghtr) {
+      const LArDaughterDriftVolume &daughterVolume(*iterDghtr);
       if (cstat == daughterVolume.GetCryostat() && tpc == daughterVolume.GetTpc())
         return std::distance(iter->second.GetTpcVolumeList().begin(), iterDghtr);
     }
     throw cet::exception("LArPandora") << " LArPandoraGeometry::GetDaughterVolumeID --- found a daughter volume that doesn't belong to the drift volume ";
-    }
+  }
 
   //------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -375,9 +372,13 @@ namespace lar_pandora {
         tpcList.insert(itpc1);
 
         LArDaughterDriftVolumeList tpcVolumeList;
-        tpcVolumeList.emplace_back(LArDaughterDriftVolume(icstat, itpc1, 
-                                                          0.5f * (driftMaxX + driftMinX), 0.5f * (driftMaxY + driftMinY), 0.5f * (driftMaxZ + driftMinZ),
-                                                          (driftMaxX - driftMinX), (driftMaxY - driftMinY), (driftMaxZ - driftMinZ)));
+        tpcVolumeList.emplace_back(LArDaughterDriftVolume(icstat, itpc1,
+                                                          0.5f * (driftMaxX + driftMinX),
+                                                          0.5f * (driftMaxY + driftMinY),
+                                                          0.5f * (driftMaxZ + driftMinZ),
+                                                          (driftMaxX - driftMinX),
+                                                          (driftMaxY - driftMinY),
+                                                          (driftMaxZ - driftMinZ)));
 
         // Now identify the other TPCs associated with this drift volume
         for (unsigned int itpc2 = itpc1 + 1; itpc2 < theGeometry->NTPC(icstat); ++itpc2) {
@@ -432,8 +433,12 @@ namespace lar_pandora {
           driftMaxZ = std::max(driftMaxZ, driftMaxZ2);
 
           tpcVolumeList.emplace_back(LArDaughterDriftVolume(icstat, itpc2, 
-                                                            0.5f * (driftMaxX2 + driftMinX2), 0.5f * (driftMaxY2 + driftMinY2), 0.5f * (driftMaxZ2 + driftMinZ2),
-                                                            (driftMaxX2 - driftMinX2), (driftMaxY2 - driftMinY2), (driftMaxZ2 - driftMinZ2)));
+                                                            0.5f * (driftMaxX2 + driftMinX2),
+                                                            0.5f * (driftMaxY2 + driftMinY2),
+                                                            0.5f * (driftMaxZ2 + driftMinZ2),
+                                                            (driftMaxX2 - driftMinX2),
+                                                            (driftMaxY2 - driftMinY2),
+                                                            (driftMaxZ2 - driftMinZ2)));
         }
 
         // Create new daughter drift volume (volume ID = 0 to N-1)
