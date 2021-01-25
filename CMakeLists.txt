@@ -41,7 +41,6 @@ find_ups_product( art )
 find_ups_product(art_root_io)
 find_ups_product( pandora )
 find_ups_product( larpandoracontent )
-find_ups_product( cetbuildtools )
 find_ups_product( postgresql )
 find_ups_product( eigen )
 
